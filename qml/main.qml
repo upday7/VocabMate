@@ -2,7 +2,7 @@ import QtQuick 2.9
 import QtQuick.Window 2.3
 import QtQuick.Controls 2.4
 import "FontAwsome"
-import pyAPIs 1.0
+import pyAPIBridge 1.0
 
 Window {
     id: window
@@ -13,8 +13,7 @@ Window {
 
     title: qsTr("Vocabulary Mate")
     color: "#293529"
-    property var $api: VocabAPI {
-    }
+    property var $api:VocabComAPIObj{}
     property var $awesome: FontAwesomeLoader {
         resource: "fontawesome-webfont.ttf"
     }

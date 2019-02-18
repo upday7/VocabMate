@@ -25,7 +25,7 @@ class _AsyncRunner(QRunnable, QObject):
         self.done.disconnect(self.callback)
 
 
-class VocabObj(QObject):
+class VocabComAPIObj(QObject):
     signingIn = Signal(bool)
     loggedIn = Signal(str)
 
@@ -37,7 +37,7 @@ class VocabObj(QObject):
     simpleDefGot = Signal(str)
 
     def __init__(self):
-        super(VocabObj, self).__init__()
+        super(VocabComAPIObj, self).__init__()
         self.loading.emit(True)
         self.p = VocabPractice()
         self._async_pool = QThreadPool(self)
