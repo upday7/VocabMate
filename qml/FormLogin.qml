@@ -98,14 +98,18 @@ Rectangle {
         id: button
         x: 100
         y: 145
+        width: 72
+        height: 29
         text: qsTr("<font color='#ffffff'>Sign In</font>")
+        spacing: 0
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: -50
         wheelEnabled: false
         font.pointSize: 14
-        anchors.horizontalCenter: parent.horizontalCenter
         highlighted: false
         flat: false
         autoRepeat: false
-        font.family: "open sans"
+        font.family: "Verdana"
         font.bold: false
 
         background: Rectangle {
@@ -117,6 +121,42 @@ Rectangle {
         }
         onClicked: {
             $api.login(text_email.text, text_pwd.text)
+        }
+        onPressedChanged: {
+            this.scale = this.scale < 1 ? 1 : .95
+        }
+        onHoveredChanged: {
+            font.bold = !font.bold
+        }
+    }
+
+    Button {
+        id: btn_try
+        x: 100
+        y: 145
+        width: 72
+        height: 29
+        text: qsTr("<font color='#ffffff'>Try</font>")
+        spacing: 0
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: 50
+        wheelEnabled: false
+        font.pointSize: 14
+        highlighted: false
+        flat: false
+        autoRepeat: false
+        font.family: "Verdana"
+        font.bold: false
+
+        background: Rectangle {
+            id: try_btn_bg
+            radius: 4
+            anchors.fill: parent
+
+            color: "#6AB14B"
+        }
+        onClicked: {
+            $api.login("", "")
         }
         onPressedChanged: {
             this.scale = this.scale < 1 ? 1 : .95
@@ -189,6 +229,17 @@ Rectangle {
         font.pixelSize: 12
         font.bold: false
     }
+
+    Text {
+        id: element
+        x: 192
+        y: 152
+        text: qsTr("OR")
+        anchors.horizontalCenter: parent.horizontalCenter
+        font.pixelSize: 12
+        color: "white"
+    }
+
     state: "normal"
     states: [
         State {

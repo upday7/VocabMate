@@ -17,8 +17,5 @@ dist
 /qml/qml.qmlproject
 /qml/qml.qmlproject.user
 *.dot
-build_bdist_mac.py
-build_bdist_mac_settings.py
 __pycache__
-/*.dmg
-/*.app
+tools
