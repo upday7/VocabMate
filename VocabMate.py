@@ -3,8 +3,9 @@ import sys
 
 # noinspection PyUnresolvedReferences
 import PySide2.QtQuick
-from PySide2.QtGui import QGuiApplication, QIcon, QWindow
+from PySide2.QtGui import QIcon, QWindow
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
+from PySide2.QtWidgets import QApplication
 
 from vm.const import VERSION, LOGGING_HANDLERS, BETA
 from vqt.bridge.vocab_com import VocabComAPIObj
@@ -15,7 +16,7 @@ logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] {%(filename)s:%(l
 
 def run():
     logging.info("Stating Vocab Mate")
-    app = QGuiApplication(sys.argv)
+    app = QApplication(sys.argv)
     logging.info(f"Application directory: {app.applicationDirPath()}")
     logging.info(f"QtGuiApplication Library Paths: {app.libraryPaths()}")
 
@@ -29,6 +30,9 @@ def run():
     engine.load('qml/main.qml', )
 
     win = engine.rootObjects()[0]  # type: QWindow
+    from vqt.error import ErrorHandler
+    setattr(win, 'error_handler', ErrorHandler())
+
     win.setTitle(f"{win.title()} {VERSION} {'Beta' if BETA else ''}")
     win.show()
     sys.exit(app.exec_())
