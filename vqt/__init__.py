@@ -1,8 +1,8 @@
 import logging
 import sys
-
 # noinspection PyUnresolvedReferences
-import PySide2.QtQuick
+from urllib.request import getproxies, proxy_bypass
+
 from PySide2.QtGui import QIcon, QWindow
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication
@@ -16,7 +16,10 @@ class VMApplication(QApplication):
         super(VMApplication, self).__init__(*args)
 
         self.engine = None
+        self.error_handler = None
 
+        self.checking_misc()
+        self.setup_error_handler()
         self.setup_logging()
         self.register_types()
         self.setup_engine()
@@ -25,6 +28,11 @@ class VMApplication(QApplication):
         self.setApplicationName(APP_NAME_VERBOSE)
         self.setWindowIcon(QIcon("qml/res/img/icon.png"))
         logging.info("Stating Vocab Mate")
+
+    def setup_error_handler(self):
+        from vqt.error import ErrorHandler
+        self.error_handler = ErrorHandler()
+        ...
 
     @staticmethod
     def setup_logging():
@@ -41,8 +49,6 @@ class VMApplication(QApplication):
         self.engine.load('qml/main.qml', )
 
     def set_root_obj_attributes(self):
-        from vqt.error import ErrorHandler
-        setattr(self.root_win, 'error_handler', ErrorHandler())
         self.root_win.setTitle(f"{self.root_win.title()} {VERSION} {'Beta' if BETA else ''}")
 
     @property
