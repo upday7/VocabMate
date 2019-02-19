@@ -1,0 +1,21 @@
+
+# IntelliJ project files
+.idea
+out
+gen
+*.pyc
+# virtual enviroment
+_env
+venv
+*/.vscode
+.DS_Store
+# customs
+*.log
+_vocab_tmp
+build
+dist
+/qml/qml.qmlproject
+/qml/qml.qmlproject.user
+*.dot
+__pycache__
+tools
