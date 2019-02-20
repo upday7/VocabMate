@@ -8,14 +8,14 @@ from time import sleep
 from typing import List, Union
 
 from PySide2.QtCore import QUrl
-from box import Box
+from box import Box, BoxKeyError
 from bs4 import BeautifulSoup
 from dataclasses import asdict
 from dataclasses import dataclass
 from diskcache import Cache
 from requests import Session
 
-# region dataclasses
+# region Dataclasses
 from vm.const import CACHE_DIR
 
 
@@ -257,8 +257,6 @@ class VocabAPI:
     APL_WORD_PROGRESS_URL = API_BASE_URL + "/progress/words"
     API_AUTH_TOKEN_URL = API_BASE_URL + "/auth/token"
 
-    answer_list = [0]  # todo: just for test, delete it after test
-
     def __init__(self):
         super(VocabAPI, self).__init__()
         self._access_token = ''
@@ -282,9 +280,7 @@ class VocabAPI:
             }
         )
 
-        self.s.headers.update({
-            'authorization': f'Bearer {self.access_token}'
-        })
+        self.s.headers.update({'authorization': f'Bearer {self.access_token}'})
 
     def login(self, user_name, password) -> str:
 
@@ -517,11 +513,20 @@ class VocabPractice(VocabAPI):
 
         # rsp_box.code
         if is_v2:
-            code = rsp_box.question.code
+            try:
+                code = rsp_box.question.code
+            except BoxKeyError:
+                code = self.cache.get("last_question_code", '')
+            if not code:
+                logging.debug(f"code does not exists, rsp_box is: \n\n{rsp_box.to_dict()}")
+                raise Exception("No Code")
         else:
             code = rsp_box.code
         content_bs = BeautifulSoup(base64.decodebytes(code.encode()), features='lxml')
-        rm_dup_spaces = lambda s: re.sub(r"\s+", " ", s).strip()
+
+        def rm_dup_spaces(s):
+            return re.sub(r"\s+", " ", s).strip()
+
         sentence_tag = content_bs.find(attrs={'class': 'sentence'})
         instructions_tag = content_bs.find(attrs={'class': 'instructions'})
 
@@ -716,6 +721,7 @@ class VocabPractice(VocabAPI):
     def _save_session(self):
         self.cache.set('last_secret', self.secret)
         self.cache.set('cookies', self.s.cookies)
+        self.cache.set('last_question_code', self.cur_question.code)
 
     def start(self) -> ChallengeRsp:
         logging.info(f"Starting vocabulary.com", )
@@ -735,9 +741,16 @@ class VocabPractice(VocabAPI):
             if rsp_box.action != 'resume':
                 self.reset_leaning_progress()
 
-        self._start_json = self._compose_challenge_rsp(rsp_box, True)
+        try:
+            self._start_json = self._compose_challenge_rsp(rsp_box, True)
+        except Exception as exc:
+            rsp = self.s.get(self.START_URL, )
+            rsp_box = Box.from_json(json_string=rsp.content.decode())
+            self._start_json = self._compose_challenge_rsp(rsp_box, False)
+
         if self._start_json.cmd == 'newround':
             self.reset_leaning_progress()
+
         logging.info(f"Start response got: {asdict(self._start_json)}")
         return self._start_json
 
