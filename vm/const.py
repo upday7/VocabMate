@@ -1,6 +1,8 @@
 import logging
 import os
 import sys
+import tempfile
+from pathlib import Path
 
 from PySide2 import __version__
 from PySide2.QtCore import qVersion
@@ -24,3 +26,7 @@ SHIBOKEN_VERSION = _shiboken_ver
 # project repository
 PROJECT_URL = "https://github.com/upday7/VocabMate"
 PROJECT_ISSUE_URL = PROJECT_URL + "/issues"
+
+# variables
+CACHE_DIR = Path(tempfile.gettempdir(), '_vocab_tmp')
+SESSION_CACHE_DIR = Path(tempfile.gettempdir(), '_vocab_tmp', 'secret')

@@ -18,7 +18,6 @@ class VMApplication(QApplication):
         self.engine = None
         self.error_handler = None
 
-        self.checking_misc()
         self.setup_error_handler()
         self.setup_logging()
         self.register_types()

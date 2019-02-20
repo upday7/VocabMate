@@ -1,7 +1,7 @@
+import atexit
 import base64
 import logging
 import re
-import tempfile
 from enum import Enum
 from pathlib import Path
 from time import sleep
@@ -15,8 +15,8 @@ from dataclasses import dataclass
 from diskcache import Cache
 from requests import Session
 
-
 # region dataclasses
+from vm.const import CACHE_DIR
 
 
 class EnumLearningPriority(Enum):
@@ -265,8 +265,9 @@ class VocabAPI:
         self._me_info = None  # type: MeRsp
 
         self.s = Session()
-        self.cache_dir = Path(tempfile.gettempdir(), '_vocab_tmp')
-        self.cache = Cache(self.cache_dir)
+        self.cache = Cache(CACHE_DIR)
+        if self.cache.get("cookies"):
+            self.s.cookies = self.cache['cookies']
         self.s.headers.update(
             {
                 "authority": "www.vocabulary.com",
@@ -481,10 +482,10 @@ class VocabPractice(VocabAPI):
             self.cache.set(Path(url).stem, local_file)
         return self.cache.get(Path(url).stem)
 
-    def _compose_challenge_rsp(self, rsp_box: Box) -> ChallengeRsp:
+    def _compose_challenge_rsp(self, rsp_box: Box, is_v2=False) -> ChallengeRsp:
         # roundSummary
         rounds = []
-        for round_box in rsp_box.pdata.round:
+        for round_box in rsp_box.pdata.get('round', []):
             prgs = []
             for prg_box in round_box.prg:
                 prgs.append(
@@ -515,7 +516,11 @@ class VocabPractice(VocabAPI):
             ))
 
         # rsp_box.code
-        content_bs = BeautifulSoup(base64.decodebytes(rsp_box.code.encode()), features='lxml')
+        if is_v2:
+            code = rsp_box.question.code
+        else:
+            code = rsp_box.code
+        content_bs = BeautifulSoup(base64.decodebytes(code.encode()), features='lxml')
         rm_dup_spaces = lambda s: re.sub(r"\s+", " ", s).strip()
         sentence_tag = content_bs.find(attrs={'class': 'sentence'})
         instructions_tag = content_bs.find(attrs={'class': 'instructions'})
@@ -528,7 +533,11 @@ class VocabPractice(VocabAPI):
         def_ = rm_dup_spaces(def_tag.text) if def_tag else ''
         instructions = rm_dup_spaces(" ".join([str(s) for s in instructions_tag.contents])) if instructions_tag else ''
 
-        if rsp_box.qtype != 'roundSummary':
+        if is_v2:
+            qtype = rsp_box.question.qtype
+        else:
+            qtype = rsp_box.qtype
+        if qtype != 'roundSummary':
             try:
                 if instructions_tag.find("strong"):
                     word = instructions_tag.find("strong").text
@@ -536,7 +545,7 @@ class VocabPractice(VocabAPI):
             except AttributeError:
                 print("TODO")  # todo when meet round == 9
 
-            if rsp_box.qtype == 'I':
+            if qtype == 'I':
                 word_tag = content_bs.find(attrs={'class': 'word'})  # consists of instructions tag and last word text
                 instructions = instructions + f"<br><b style='color: orange'>" \
                     f"{rm_dup_spaces(word_tag.text.replace(instructions, ' '))}</b>"
@@ -557,11 +566,11 @@ class VocabPractice(VocabAPI):
                         content.attrs['style'] = 'color: black'
                     else:
                         sentence = "".join([str(s) for s in body_tag.contents]).replace("<p>", '').replace("</p>", '')
-            if rsp_box.qtype == 'T':
+            if qtype == 'T':
                 choices = []
             else:
                 choices = [_QuestionOption(
-                    rm_dup_spaces(a.text) if rsp_box.qtype != "I"
+                    rm_dup_spaces(a.text) if qtype != "I"
                     else QUrl.fromLocalFile(
                         self.download_img(re.search(r"https.+\.jpg", a.__str__()).group(0)).__str__()),
                     a.attrs['nonce']) for a in choices_tag.find_all('a')]
@@ -575,13 +584,14 @@ class VocabPractice(VocabAPI):
             )
         else:
             content = None
+        hints = rsp_box.get('hints', [])
         return ChallengeRsp(
             v=rsp_box.v,
-            hints=list(rsp_box.get('hints', [])),
-            code=rsp_box.code,
+            hints=list(hints),
+            code=code,
             question_content=content,
-            qtype=rsp_box.qtype,
-            cmd=rsp_box.cmd,
+            qtype=qtype,
+            cmd=rsp_box.get('cmd', rsp_box.get('action', '')),
             pdata=_ChallengePData(
                 points=rsp_box.pdata.points,
                 level=_ChallengeLevel(rsp_box.pdata.level.id, rsp_box.pdata.level.name, ),
@@ -590,9 +600,9 @@ class VocabPractice(VocabAPI):
                 a=rsp_box.pdata.a,
                 round=rounds
             ),
-            auth=_ChallengeAuth(loggedin=rsp_box.auth.loggedin),
+            auth=_ChallengeAuth(loggedin=rsp_box.get('auth', Box(loggedin=False)).loggedin),
             secret=rsp_box.secret,
-            valid=rsp_box.valid,
+            valid=rsp_box.get('valid', True),
         )
 
     def _compose_answer_rsp(self, rsp_box: Box) -> SaveAnswerRspV2:
@@ -703,9 +713,19 @@ class VocabPractice(VocabAPI):
         progresses.append([answer, self.get_word_progress(answer.word)])
         self.cache.set('leaning_progresses', progresses)
 
+    def _save_session(self):
+        self.cache.set('last_secret', self.secret)
+        self.cache.set('cookies', self.s.cookies)
+
     def start(self) -> ChallengeRsp:
         logging.info(f"Starting vocabulary.com", )
-        rsp = self.s.get(self.START_URL, )
+
+        if not self._secret:
+            atexit.register(self._save_session, )
+
+        rsp = self.s.post(self.START_URL, data=dict(secret=self.cache.get('last_secret', ''), v=2, started=True))
+        self.cache.set('last_secret', '')
+
         rsp.raise_for_status()  # todo: check next question http request
         if rsp.status_code != 200:
             raise NotImplementedError  # todo
@@ -714,14 +734,10 @@ class VocabPractice(VocabAPI):
             logging.info(f"'action' in response data: {rsp_box.action}")
             if rsp_box.action != 'resume':
                 self.reset_leaning_progress()
-            return self.start()
-        else:
-            if rsp_box.qtype == 'interstitial':
-                logging.warning('rsp_box.qtype == interstitial, restarting ')
-                return self.start()
-            self._start_json = self._compose_challenge_rsp(rsp_box)
-            if self._start_json.cmd == 'newround':
-                self.reset_leaning_progress()
+
+        self._start_json = self._compose_challenge_rsp(rsp_box, True)
+        if self._start_json.cmd == 'newround':
+            self.reset_leaning_progress()
         logging.info(f"Start response got: {asdict(self._start_json)}")
         return self._start_json
 
