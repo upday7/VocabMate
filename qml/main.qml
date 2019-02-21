@@ -1,8 +1,9 @@
 import QtQuick 2.9
 import QtQuick.Window 2.3
 import QtQuick.Controls 2.4
-import "FontAwsome"
+import "FontAwesome"
 import pyAPIBridge 1.0
+import "VCControls"
 
 Window {
     id: window
@@ -13,12 +14,24 @@ Window {
 
     title: qsTr("Vocabulary Mate")
     color: "#293529"
-    property var $api:VocabComAPIObj{}
+
+    property var $api: VocabComAPIObj {
+    }
     property var $awesome: FontAwesomeLoader {
-        resource: "fontawesome-webfont.ttf"
+        resource: "../res/fonts/Fontawesome-Webfont.ttf"
     }
     property var $favar: FaVar {
         id: favar
+    }
+    //    Load fonts
+    Repeater {
+        id: fonts_rpt
+        model: ["res/fonts/OpenSans-Bold.ttf", "res/fonts/OpenSans-Italic.ttf", "res/fonts/OpenSans-Regular.ttf"]
+        delegate: Item {
+            FontLoader {
+                source: modelData
+            }
+        }
     }
 
     StackView {

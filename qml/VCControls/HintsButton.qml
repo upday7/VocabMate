@@ -8,7 +8,6 @@ Item {
     height: childrenRect.height
 
     signal hint_def_clicked
-    signal hint_5050_clicked
 
     property alias btn_hint_def: hint_def
 
@@ -31,9 +30,10 @@ Item {
         }
         Button {
             id: hint_def
-            height: bg_gif_5050.paintedHeight
-            width: bg_gif_5050.paintedWidth
+            height: bg_gif_def.paintedHeight
+            width: bg_gif_def.paintedWidth
             background: Image {
+            id: bg_gif_def
                 source: "../res/img/hint-def.gif"
                 anchors.fill: parent
             }

@@ -14,18 +14,19 @@ from vqt.bridge.vocab_com import VocabComAPIObj
 class VMApplication(QApplication):
     def __init__(self, *args):
         super(VMApplication, self).__init__(*args)
+        self.setup_logging()
 
         self.engine = None
         self.error_handler = None
 
         self.setup_error_handler()
-        self.setup_logging()
+
         self.register_types()
         self.setup_engine()
         self.set_root_obj_attributes()
 
         self.setApplicationName(APP_NAME_VERBOSE)
-        self.setWindowIcon(QIcon("qml/res/img/icon.png"))
+        self.setWindowIcon(QIcon("://res/img/icon.png"))
         logging.info("Stating Vocab Mate")
 
     def setup_error_handler(self):

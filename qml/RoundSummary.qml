@@ -6,11 +6,17 @@ Item {
     id: round_summary
     height: childrenRect.height
     width: childrenRect.width
-    property alias round_prg_data: rpt.model
-    ColumnLayout {
+    property alias round_prg_data: round_summary_rpt.model
+
+    Column {
         spacing: 10
         Repeater {
-            id: rpt
+            id: round_summary_rpt
+            model: [{
+                    "wrd": 'wary',
+                    "prg": 0.25,
+                    "def_": 'openly distrustful and unwilling to confide'
+                }]
             delegate: WordProgress {
                 word: modelData['wrd']
                 pctg: modelData['prg']

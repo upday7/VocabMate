@@ -10,7 +10,7 @@ from shiboken2 import __version__ as _shiboken_ver
 
 # application settings
 BETA = True
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 APP_NAME_SHORT = 'VocabMate'
 APP_NAME_VERBOSE = 'Vocabulary Mate'
 _stdout_handler = logging.StreamHandler(sys.stdout)
@@ -30,3 +30,4 @@ PROJECT_ISSUE_URL = PROJECT_URL + "/issues"
 # variables
 CACHE_DIR = Path(tempfile.gettempdir(), '_vocab_tmp')
 SESSION_CACHE_DIR = Path(tempfile.gettempdir(), '_vocab_tmp', 'secret')
+TEST_CACHE_DIR = Path(tempfile.gettempdir(), '_vocab_tmp', 'secret')

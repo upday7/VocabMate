@@ -55,10 +55,16 @@ class VocabComAPIObj(QObject):
         self.loading.emit(True)
 
         def cb(res: ChallengeRsp):
-            if res.pdata.round.__len__() == 10:
-                self.roundSummary.emit(QJsonArray.fromVariantList(
-                    [asdict(i)['prg'][0] for i in res.pdata.round]
-                ))
+            if res.qtype == 'roundSummary':
+                prg_data = [
+                    {
+                        'wrd': asdict(i)['prg'][0]['wrd'],
+                        'prg': asdict(i)['prg'][0]["prg"],
+                        'def_': asdict(i)['prg'][0]['def_']
+                    }
+                    for i in res.pdata.round]
+
+                self.roundSummary.emit(QJsonArray.fromVariantList(prg_data))
             else:
                 self.newCard.emit(QJsonValue(asdict(res)))
 
@@ -86,7 +92,6 @@ class VocabComAPIObj(QObject):
         self.signingIn.emit(True)
         self.ac(self.p.login, self.loggedIn.emit, email, pwd)
 
-    def _get_cur_word_leaning_progress(self):
+    @QProperty(float, )
+    def cur_word_leaning_progress(self):
         return self.p.current_word_leaning_progress
-
-    cur_word_leaning_progress = QProperty(float, _get_cur_word_leaning_progress, )

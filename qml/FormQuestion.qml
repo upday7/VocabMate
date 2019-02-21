@@ -2,6 +2,7 @@ import QtQuick 2.9
 
 Item {
     id: question_win
+
     Question {
         id: question
         anchors.fill: parent
@@ -125,6 +126,10 @@ Item {
         }
         onRoundSummary: function (round_prg_data) {
             question.visible = false
+            for (var i = 0; i < round_prg_data.length; i++) {
+                console.log(round_prg_data[i]['wrd'], round_prg_data[i]['prg'],
+                            round_prg_data[i]['def_'])
+            }
             round_summary.round_prg_data = round_prg_data
         }
     }
@@ -142,6 +147,7 @@ Item {
             duration: 1000
         }
     }
+
     Component.onCompleted: {
         $api.start()
     }
