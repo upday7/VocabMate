@@ -48,7 +48,7 @@ Item {
             id: loading
             width: parent.height * 0.9
             height: parent.height * 0.9
-            source: "res/img/loading.svg"
+            source: "../../res/img/loading.svg"
             anchors.verticalCenter: parent.verticalCenter
             visible: false
             RotationAnimator on rotation {

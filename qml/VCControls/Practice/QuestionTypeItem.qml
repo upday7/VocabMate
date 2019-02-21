@@ -101,7 +101,7 @@ ColumnLayout {
             width: button.height
             height: button.height
 
-            source: "res/img/loading.svg"
+            source: "../../res/img/loading.svg"
             visible: textInput.readOnly
             RotationAnimator on rotation {
                 loops: Animation.Infinite

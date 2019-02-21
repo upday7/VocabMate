@@ -3,7 +3,6 @@ import QtQuick.Window 2.3
 import QtQuick.Controls 2.4
 import "FontAwesome"
 import pyAPIBridge 1.0
-import "VCControls"
 
 Window {
     id: window

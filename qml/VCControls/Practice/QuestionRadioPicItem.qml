@@ -34,7 +34,7 @@ Rectangle {
         AnimatedImage {
             width: 32
             height: 32
-            source: "res/img/loading.svg"
+            source: "../../res/img/loading.svg"
             anchors.centerIn: parent
             RotationAnimator on rotation {
                 loops: Animation.Infinite

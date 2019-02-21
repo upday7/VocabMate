@@ -33,8 +33,8 @@ Item {
             height: bg_gif_def.paintedHeight
             width: bg_gif_def.paintedWidth
             background: Image {
-            id: bg_gif_def
-                source: "../res/img/hint-def.gif"
+                id: bg_gif_def
+                source: "../../res/img/hint-def.gif"
                 anchors.fill: parent
             }
 
