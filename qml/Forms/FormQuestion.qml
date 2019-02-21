@@ -1,5 +1,5 @@
 import QtQuick 2.9
-import "VCControls/Practice"
+import "../VCControls/Practice"
 
 Item {
     id: question_win

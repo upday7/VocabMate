@@ -6,7 +6,7 @@ Button {
     id: jam_dif_btn
 
     property string face_color: "#cccccc"
-    readonly property var dif_level_data: [["../res/img/jam-dif0.svg", "#4DB538"], ["../res/img/jam-dif1.svg", "#BDCB31"], ["../res/img/jam-dif2.svg", "#FFCD05"], ["res/img/jam-dif3.svg", "#F26922"], ["../res/img/jam-dif4.svg", "#EE2F26"]]
+    readonly property var dif_level_data: [["../../res/img/jam-dif0.svg", "#4DB538"], ["../../res/img/jam-dif1.svg", "#BDCB31"], ["../../res/img/jam-dif2.svg", "#FFCD05"], ["../../res/img/jam-dif3.svg", "#F26922"], ["../../res/img/jam-dif4.svg", "#EE2F26"]]
     property int dif_lvl: 0
 
     width: 78

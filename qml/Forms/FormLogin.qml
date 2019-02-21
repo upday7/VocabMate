@@ -90,7 +90,7 @@ Rectangle {
         width: 163
         height: 24
         anchors.horizontalCenter: parent.horizontalCenter
-        source: "res/img/vocab_logo.png"
+        source: "../res/img/vocab_logo.png"
         fillMode: Image.PreserveAspectFit
     }
 
@@ -207,7 +207,7 @@ Rectangle {
         width: 33
         height: 21
         anchors.horizontalCenter: parent.horizontalCenter
-        source: "res/img/loading.svg"
+        source: "../res/img/loading.svg"
         fillMode: Image.PreserveAspectFit
 
         RotationAnimator on rotation {

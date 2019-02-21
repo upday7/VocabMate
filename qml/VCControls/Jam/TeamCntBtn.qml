@@ -10,7 +10,8 @@ Rectangle {
 
     property int team_count: 0
     property int btn_width: 48
-    property int _last_active_btn_index: 0
+    property int _last_active_btn_index: -1
+    readonly property int default_btn_index: 0
 
     Row {
         spacing: 5
@@ -20,25 +21,29 @@ Rectangle {
             model: [2, 3, 4]
             delegate: NumberRoundBtn {
                 cur_number: modelData
-                width: q_count_button_group.btn_width
+                width: team_cnt_btn_grp.btn_width
                 height: width
                 property int btn_index: index
 
                 Connections {
                     onClicked: {
-                        if (team_cnt_btn_grp.team_count !== cur_number) {
+                        if (team_count !== cur_number
+                                && _last_active_btn_index >= 0) {
                             team_cnt_btn_rpt.itemAt(
                                         _last_active_btn_index).set_inactive()
-                            team_cnt_btn_grp._last_active_btn_index = index
-                            team_count = cur_number
                         }
+                        _last_active_btn_index = index
+                        team_count = cur_number
                     }
                 }
             }
 
             Component.onCompleted: {
-                team_cnt_btn_rpt.itemAt(_last_active_btn_index).set_active()
+                team_cnt_btn_rpt.itemAt(default_btn_index).clicked()
             }
         }
+    }
+    onTeam_countChanged: {
+        console.log("current team count: ", team_count)
     }
 }

@@ -6,13 +6,10 @@ import QtQuick.Layouts 1.3
 Rectangle {
     id: round_side_btn_grp
     height: childrenRect.height
-    width: childrenRect.width
-
-    property int cur_index: 0
+    width: childrenRect.width + 20
+    property int cur_index: 1
     property string cur_text: ""
-    //    ["Slow", "Normal", "Fast", "No Time Limit"]
-    property var cur_model: ["Randomly", "Students Choose"]
-    property int btn_width: 48
+    property var cur_model: ["Slow", "Normal", "Fast", "No Time Limit"]
 
     Row {
         spacing: 5
@@ -23,7 +20,6 @@ Rectangle {
             delegate: RoundSideBtn {
                 cur_text: modelData
 
-                width: round_side_btn_grp.btn_width
                 font_size: 18
                 Connections {
                     onClicked: {
@@ -45,6 +41,6 @@ Rectangle {
         }
     }
     onCur_textChanged: {
-        console.log(round_side_btn_grp.cur_text)
+        console.log(cur_index, round_side_btn_grp.cur_text)
     }
 }

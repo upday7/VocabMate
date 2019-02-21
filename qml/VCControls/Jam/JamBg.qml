@@ -28,6 +28,7 @@ Item {
     }
 
     RadialGradient {
+        id: jam_color_bg_2nd_gradient
         anchors.fill: parent
         horizontalRadius: width * 0.8
         verticalRadius: horizontalRadius
@@ -42,5 +43,8 @@ Item {
             }
         }
         opacity: 0.2
+    }
+    onColorChanged: {
+        jam_color_bg_2nd_gradient.visible = !color === '#ffffff'
     }
 }
