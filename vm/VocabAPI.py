@@ -2,243 +2,20 @@ import atexit
 import base64
 import logging
 import re
-from enum import Enum
 from pathlib import Path
 from time import sleep
-from typing import List, Union
+from typing import Dict
 
 from PySide2.QtCore import QUrl
 from box import Box, BoxKeyError
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from dataclasses import asdict
-from dataclasses import dataclass
 from diskcache import Cache
 from requests import Session
 
-# region Dataclasses
+from vm.DClasses import *
 from vm.const import CACHE_DIR
-
-
-class EnumLearningPriority(Enum):
-    Auto = 0
-    High = 1
-    Low = -1
-
-
-@dataclass
-class _ChallengeAuth:
-    loggedin: bool = False
-    uid: str = ''
-    nickname: str = ''
-    fullname: str = ''
-    email: str = ''
-    role: Union[None, str] = None
-
-
-@dataclass
-class _ChallengeLevel:
-    id: str
-    name: str
-
-
-@dataclass
-class _ChallengePrg:
-    wrd: str
-    cp: int
-    cc: int
-    ci: int
-    dfp: str  # "2019-01-28T16:02:09.436Z",
-    dlp: str  # "2019-01-28T16:02:09.436Z",
-    prg: float
-    pri: 0
-    kv: float
-    lrn: bool
-    dif: float
-    pos: str
-    def_: str
-    aud: List[str]
-
-
-@dataclass
-class _ChallengeRound1:
-    cor: bool
-    hnt: bool
-    bns: int
-    pts: int
-    tps: int
-    prg: List[_ChallengePrg]
-
-
-@dataclass
-class _ChallengeRound2:
-    number: int
-    streak: int
-    played_count: int
-
-
-@dataclass
-class _ChallengePData:
-    points: int
-    level: _ChallengeLevel
-    numplayed: int
-    nummastered: int
-    a: int
-    round: List[_ChallengeRound1] = ()
-
-
-@dataclass
-class _Question:
-    turn: int
-    type: str  # ["H","P","S"]
-    hints: List
-    code: str  # base64
-    qtype: str
-
-
-@dataclass
-class _WordSense:
-    id: int
-    part_of_speech: str
-    audio: str
-    definition: str
-    ordinal: str  # "1.01.01.01"
-    pos: str = ''
-
-
-@dataclass
-class _AnswerBlurb:
-    short: str
-    long: str
-
-
-@dataclass
-class _WordProgress:
-    progress: float
-    played_at: str
-    scheduled_at: str
-    play_count: int
-    correct_count: int
-    incorrect_count: int
-    value: float
-    priority: int
-
-
-@dataclass
-class _QuestionOption:
-    option: str
-    nonce: str
-
-
-@dataclass
-class _QuestionContent:
-    sentence: str
-    instructions: str
-    choices: List[_QuestionOption]
-    status: str
-    def_: str
-
-
-@dataclass
-class ChallengeRsp:
-    __module__ = None
-    v: int
-    hints: List
-    code: str
-    question_content: Union[_QuestionContent, None]
-    # S: simple - XXX means
-    # L: In this sentence XXX means
-    # I: Choose picture for XXX
-    # H: In this sentence XXX means
-    # P:
-    qtype: str
-    cmd: str
-    pdata: _ChallengePData
-    auth: _ChallengeAuth
-    secret: str
-    valid: bool
-
-
-@dataclass
-class HintRsp:
-    pos: str
-    def_: str
-    pdata: _ChallengePData
-    secret: str
-
-
-@dataclass
-class SaveAnswerRspV2:  # V = ChallengeRsp.v value
-    turn: int
-    question_mode: str  # "i"
-    question_type: str
-    word: str
-    sense: _WordSense
-    correct_choice: int
-    user_choice: int
-    progress: _WordProgress
-    points: int
-    bonus: int
-    streak: int
-    round_streak: int
-    round_turn: int
-    response_time: int
-    session_time: int
-    played_at: str
-    correct: bool
-    hints: bool
-    blurb: _AnswerBlurb
-    round: _ChallengeRound2
-    pdata: _ChallengePData
-    secret: str
-    accepted_answers: List[str] = ('',)
-    sentence_html: str = ""
-
-
-@dataclass
-class WordProgressRsp:
-    word: str
-    sense: _WordSense
-    pkv: Union[int, None]
-    progress: Union[_WordProgress, None]
-    learnable: bool
-
-
-@dataclass
-class MeRsp:
-    validUser: bool
-    guid: str
-    auth: _ChallengeAuth
-    perms: dict
-    points: int
-    level: _ChallengeLevel
-    ima: str
-    paid: bool
-
-
-@dataclass
-class WordDefSense:
-    pos_short: str
-    pos_long: str
-    def_: str
-    example: str = ''
-
-
-@dataclass
-class WordDef:
-    word: str
-    audio: str
-    blurb: _AnswerBlurb
-    def_groups: List[List[WordDefSense]]
-
-
-@dataclass
-class AutoCompleteItem:
-    word: str
-    short_def: str
-    freq: float
-
-
-# endregion
+from vm.exceptions import APIGetError
 
 
 class VocabAPI:
@@ -341,7 +118,7 @@ class VocabAPI:
         word_prg_box = Box.from_json(json_string=rsp.content.decode())
         progress = None
         if word_prg_box.get('progress'):
-            progress = _WordProgress(
+            progress = WordProgress(
                 progress=word_prg_box.progress.progress,
                 played_at=word_prg_box.progress.played_at,
                 scheduled_at=word_prg_box.progress.scheduled_at,
@@ -353,11 +130,11 @@ class VocabAPI:
             )
         return WordProgressRsp(
             word=word_prg_box.word,
-            sense=_WordSense(id=word_prg_box.sense.id,
-                             part_of_speech=word_prg_box.sense.part_of_speech,
-                             audio=self.get_first_audio_url(word_prg_box.sense),
-                             definition=word_prg_box.sense.definition,
-                             ordinal=word_prg_box.sense.ordinal),
+            sense=WordSense(id=word_prg_box.sense.id,
+                            part_of_speech=word_prg_box.sense.part_of_speech,
+                            audio=self.get_first_audio_url(word_prg_box.sense),
+                            definition=word_prg_box.sense.definition,
+                            ordinal=word_prg_box.sense.ordinal),
             progress=progress,
             pkv=word_prg_box.get('pkv', None),
             learnable=word_prg_box.learnable
@@ -385,7 +162,7 @@ class VocabAPI:
                 self._me_info = MeRsp(
                     validUser=rsp_box.validUser,
                     guid=rsp_box.guid,
-                    auth=_ChallengeAuth(
+                    auth=ChallengeAuth(
                         loggedin=rsp_box.auth.loggedin,
                         uid=rsp_box.auth.uid,
                         nickname=rsp_box.auth.nickname,
@@ -394,11 +171,11 @@ class VocabAPI:
                     ),
                     perms=dict(rsp_box.perms),
                     points=rsp_box.points,
-                    level=_ChallengeLevel(id=rsp_box.level.id, name=rsp_box.level.name),
+                    level=ChallengeLevel(id=rsp_box.level.id, name=rsp_box.level.name),
                     ima=rsp_box.ima, paid=rsp_box.paid
                 )
             else:
-                self._me_info = _ChallengeAuth(loggedin=False)
+                self._me_info = ChallengeAuth(loggedin=False)
         return self._me_info
 
     def get_word_def(self, word: str) -> WordDef:
@@ -453,8 +230,71 @@ class VocabAPI:
                     ordinals.append(senses)
                 def_groups.append(ordinals)
             self.cache.set(cache_key,
-                           WordDef(word_, audio_url, _AnswerBlurb(short_blurb_txt, long_blurb_txt), def_groups))
+                           WordDef(word_, audio_url, AnswerBlurb(short_blurb_txt, long_blurb_txt), def_groups))
         return self.cache.get(cache_key)
+
+    def get_bs(self, url: str, **kwargs) -> BeautifulSoup:
+        return BeautifulSoup(self.get(url, **kwargs), features='lxml')
+
+    def get(self, url: str, **kwargs) -> str:
+        rsp = self.s.get(url, **kwargs)
+        rsp.raise_for_status()
+        if rsp.status_code != 200:
+            raise APIGetError(url)
+        return rsp.content.decode()
+
+
+class VocabLists(VocabAPI):
+    def __init__(self):
+        super(VocabLists, self).__init__()
+
+    @property
+    def featured_lists(self) -> Dict[str, List[WordList]]:
+        list_url = self.BASE_URL + "/lists/"
+        bs = self.get_bs(list_url)
+        featured_lists = {}
+        for section in bs.select("section"):
+            section = section  # type: Tag
+            lists = self._get_list(section)
+            if not lists:
+                continue
+            featured_lists[lists[0].category] = lists
+        return featured_lists
+
+    def get_category_list(self, category: EnumWordListCategory):
+        category_list_url = self.BASE_URL + f"/lists/bycategory.ui?" \
+            f"tag={category.value[0]}&limit=45"
+        bs = self.get_bs(category_list_url)
+        return self._get_list(bs, category.value[1])
+
+    def _get_list(self, t: Tag, category='') -> Union[List[WordList], None]:
+        if not category:
+            try:
+                header_tag = t.find(class_="sectionHeader")
+                if not header_tag:
+                    return
+            except AttributeError:
+                return
+            header_text = str(header_tag.contents[0]).strip()
+        else:
+            header_text = category
+        lists = []
+        for word_list in t.select(".wordlist"):
+            list_name_text = word_list.h2.text
+            description_text = word_list.find(class_="description").text.strip()
+            read_more_tag = word_list.find(class_="readMore")
+            list_url = self.BASE_URL + read_more_tag['href']
+            total_words_text = read_more_tag.text.strip()
+            lists.append(
+                WordList(
+                    category=header_text,
+                    name=list_name_text,
+                    description=description_text,
+                    url=list_url,
+                    total_words=total_words_text
+                )
+            )
+        return lists
 
 
 class VocabPractice(VocabAPI):
@@ -485,7 +325,7 @@ class VocabPractice(VocabAPI):
             prgs = []
             for prg_box in round_box.prg:
                 prgs.append(
-                    _ChallengePrg(
+                    ChallengePrg(
                         wrd=prg_box.wrd,
                         cp=prg_box.cp,
                         cc=prg_box.cc,
@@ -502,7 +342,7 @@ class VocabPractice(VocabAPI):
                         aud=prg_box.aud
                     )
                 )
-            rounds.append(_ChallengeRound1(
+            rounds.append(ChallengeRound1(
                 cor=round_box.cor,
                 hnt=round_box.hnt,
                 bns=round_box.bns,
@@ -574,13 +414,13 @@ class VocabPractice(VocabAPI):
             if qtype == 'T':
                 choices = []
             else:
-                choices = [_QuestionOption(
+                choices = [QuestionOption(
                     rm_dup_spaces(a.text) if qtype != "I"
                     else QUrl.fromLocalFile(
                         self.download_img(re.search(r"https.+\.jpg", a.__str__()).group(0)).__str__()),
                     a.attrs['nonce']) for a in choices_tag.find_all('a')]
 
-            content = _QuestionContent(
+            content = QuestionContent(
                 sentence=sentence,
                 instructions=instructions,
                 choices=choices,
@@ -597,15 +437,15 @@ class VocabPractice(VocabAPI):
             question_content=content,
             qtype=qtype,
             cmd=rsp_box.get('cmd', rsp_box.get('action', '')),
-            pdata=_ChallengePData(
+            pdata=ChallengePData(
                 points=rsp_box.pdata.points,
-                level=_ChallengeLevel(rsp_box.pdata.level.id, rsp_box.pdata.level.name, ),
+                level=ChallengeLevel(rsp_box.pdata.level.id, rsp_box.pdata.level.name, ),
                 numplayed=rsp_box.pdata.numplayed,
                 nummastered=rsp_box.pdata.nummastered,
                 a=rsp_box.pdata.a,
                 round=rounds
             ),
-            auth=_ChallengeAuth(loggedin=rsp_box.get('auth', Box(loggedin=False)).loggedin),
+            auth=ChallengeAuth(loggedin=rsp_box.get('auth', Box(loggedin=False)).loggedin),
             secret=rsp_box.secret,
             valid=rsp_box.get('valid', True),
         )
@@ -617,14 +457,14 @@ class VocabPractice(VocabAPI):
             question_mode=rsp_box.answer.question_mode,
             question_type=rsp_box.answer.question_type,
             word=rsp_box.answer.word,
-            sense=_WordSense(id=rsp_box.answer.sense.id, pos=rsp_box.answer.sense.pos,
-                             part_of_speech=rsp_box.answer.sense.part_of_speech,
-                             audio=self.get_first_audio_url(rsp_box.answer.sense),
-                             definition=rsp_box.answer.sense.definition,
-                             ordinal=rsp_box.answer.sense.ordinal),
+            sense=WordSense(id=rsp_box.answer.sense.id, pos=rsp_box.answer.sense.pos,
+                            part_of_speech=rsp_box.answer.sense.part_of_speech,
+                            audio=self.get_first_audio_url(rsp_box.answer.sense),
+                            definition=rsp_box.answer.sense.definition,
+                            ordinal=rsp_box.answer.sense.ordinal),
             correct_choice=rsp_box.answer.get('correct_choice', -1),
             user_choice=rsp_box.answer.get("user_choice", -1),
-            progress=_WordProgress(
+            progress=WordProgress(
                 progress=rsp_box.answer.progress.progress,
                 played_at=rsp_box.answer.progress.played_at,
                 scheduled_at=rsp_box.answer.progress.scheduled_at,
@@ -645,15 +485,15 @@ class VocabPractice(VocabAPI):
             played_at=rsp_box.answer.played_at,
             correct=rsp_box.answer.correct,
             hints=rsp_box.answer.hints,  # bool
-            blurb=_AnswerBlurb(rsp_box.answer.blurb.short, rsp_box.answer.blurb.long),  # html format
-            round=_ChallengeRound2(
+            blurb=AnswerBlurb(rsp_box.answer.blurb.short, rsp_box.answer.blurb.long),  # html format
+            round=ChallengeRound2(
                 number=rsp_box.round.number,
                 streak=rsp_box.round.streak,
                 played_count=rsp_box.round.played_count
             ),
-            pdata=_ChallengePData(
+            pdata=ChallengePData(
                 points=rsp_box.pdata.points,
-                level=_ChallengeLevel(rsp_box.pdata.level.id, rsp_box.pdata.level.name, ),
+                level=ChallengeLevel(rsp_box.pdata.level.id, rsp_box.pdata.level.name, ),
                 numplayed=rsp_box.pdata.numplayed,
                 nummastered=rsp_box.pdata.nummastered,
                 a=rsp_box.pdata.a,
