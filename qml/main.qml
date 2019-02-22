@@ -27,10 +27,17 @@ Window {
     //    Load fonts
     Repeater {
         id: fonts_rpt
-        model: ["res/fonts/OpenSans-Bold.ttf", "res/fonts/OpenSans-Italic.ttf", "res/fonts/OpenSans-Regular.ttf"]
+        model: ["res/fonts/OpenSans-Bold.ttf", "res/fonts/OpenSans-Italic.ttf", "res/fonts/OpenSans-Regular.ttf", "res/fonts/ss-symbolicons-block.woff", "res/fonts/ss-standard.woff"]
         delegate: Item {
             FontLoader {
                 source: modelData
+
+                onStatusChanged: {
+
+                    if ((status === FontLoader.Ready)) {
+                        console.log(name, " loaded.")
+                    }
+                }
             }
         }
     }
@@ -48,7 +55,7 @@ Window {
         target: login_form
         onSuccess: {
             stack.pop()
-            stack.push("FormQuestion.qml")
+            stack.push("Forms/FormQuestion.qml")
         }
     }
 }
