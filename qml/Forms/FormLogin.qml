@@ -1,5 +1,5 @@
 import QtQuick 2.9
-import QtQuick.Controls 2.4
+import QtQuick.Controls 2.9
 import QtQuick.Controls.Styles 1.4
 import Qt.labs.settings 1.0
 
@@ -7,8 +7,8 @@ Rectangle {
     id: login
 
     width: 400
-    height: 230
-    radius: 8
+    height: 260
+    radius: 1
     color: "#cc000000"
 
     signal success
@@ -97,10 +97,11 @@ Rectangle {
     Button {
         id: button
         x: 100
-        y: 145
+        y: 175
         width: 72
         height: 29
         text: qsTr("<font color='#ffffff'>Sign In</font>")
+        focusPolicy: Qt.NoFocus
         leftPadding: 1
         rightPadding: 1
         spacing: 0
@@ -122,7 +123,8 @@ Rectangle {
             color: "#6AB14B"
         }
         onClicked: {
-            $api.login(text_email.text, text_pwd.text)
+            $api.login(text_email.text, text_pwd.text,
+                       login_form_remember_me.on)
         }
         onPressedChanged: {
             this.scale = this.scale < 1 ? 1 : .95
@@ -135,7 +137,7 @@ Rectangle {
     Button {
         id: btn_try
         x: 100
-        y: 145
+        y: 175
         width: 72
         height: 29
         text: qsTr("<font color='#ffffff'>Try</font>")
@@ -174,11 +176,12 @@ Rectangle {
         id: sign_up
         property string sign_up_url: 'https://www.vocabulary.com/signup/'
         x: 248
-        y: 207
+        y: 237
         width: 44
 
         color: "#6AB14B"
         text: qsTr("<style>a{ color: #6AB14B}</style><a href='" + sign_up_url + "'>Sign Up</a>")
+        anchors.horizontalCenterOffset: 0
         anchors.horizontalCenter: parent.horizontalCenter
 
         textFormat: Text.RichText
@@ -188,6 +191,10 @@ Rectangle {
 
         MouseArea {
             width: 48
+            anchors.rightMargin: 0
+            anchors.bottomMargin: -29
+            anchors.leftMargin: 0
+            anchors.topMargin: 29
             anchors.fill: parent
 
             hoverEnabled: true
@@ -203,9 +210,10 @@ Rectangle {
     AnimatedImage {
         id: busyIndicator
         x: 138
-        y: 180
+        y: 210
         width: 33
         height: 21
+        anchors.horizontalCenterOffset: 0
         anchors.horizontalCenter: parent.horizontalCenter
         source: "../res/img/loading.svg"
         fillMode: Image.PreserveAspectFit
@@ -237,11 +245,24 @@ Rectangle {
     Text {
         id: element
         x: 192
-        y: 152
+        y: 182
         text: qsTr("OR")
+        anchors.horizontalCenterOffset: 0
         anchors.horizontalCenter: parent.horizontalCenter
         font.pixelSize: 12
         color: "white"
+    }
+
+    Switch {
+        id: login_form_remember_me
+        x: 129
+        y: 128
+        text: qsTr("<font color='#ffffff'>Remember me</font>")
+        anchors.horizontalCenter: parent.horizontalCenter
+        font: {
+            family: "open sans"
+        }
+        scale: 0.8
     }
 
     state: "normal"

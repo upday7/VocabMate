@@ -50,6 +50,7 @@ Window {
     }
 
     Component.onCompleted: {
+
         if (!$api.is_logged_in) {
             stack.push(comp_login_form)
         } else {

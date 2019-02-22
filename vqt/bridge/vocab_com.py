@@ -62,10 +62,10 @@ class VCPracticeAPIObj(BridgeObj):
         self.ac(self.p.get_autocomplete_list,
                 lambda auto_complete_items: self.simpleDefGot.emit(auto_complete_items[0].short_def), word)
 
-    @Slot(str, str, result=str)
-    def login(self, email: str, pwd: str):
+    @Slot(str, str, bool, result=str)
+    def login(self, email: str, pwd: str, auto_login: bool):
         self.signingIn.emit(True)
-        self.ac(self.p.login, self.loggedIn.emit, email, pwd)
+        self.ac(self.p.login, self.loggedIn.emit, email, pwd, auto_login)
 
     @QProperty(float, )
     def cur_word_leaning_progress(self):

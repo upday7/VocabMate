@@ -77,15 +77,15 @@ class VocabAPI:
         logging.debug(f"logged in: {is_logged_in}")
         return is_logged_in
 
-    def login(self, user_name, password) -> str:
+    def login(self, user_name: str, password: str, auto_login: bool) -> str:
         if self.is_logged_in:
             return ''
         # login procedure
         login_data = {
             'username': user_name,
             'password': password,
-            '.cb-autoLogon': 1,
-            'autoLogon': True
+            '.cb-autoLogon': int(auto_login),
+            'autoLogon': auto_login
         }
         login_rqs = self.s.post(self.LOGIN_URL, data=login_data)
         login_rqs.raise_for_status()  # todo: solve the http request err
