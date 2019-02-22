@@ -112,6 +112,10 @@ Item {
                     State {
                         name: "normal"
                         PropertyChanges {
+                            target: word_list_menu_item
+                            activated: false
+                        }
+                        PropertyChanges {
                             target: word_list_menu_icon
                             color: colors[1]
                         }
@@ -127,6 +131,10 @@ Item {
                     },
                     State {
                         name: "hovering"
+                        PropertyChanges {
+                            target: word_list_menu_item
+                            activated: false
+                        }
                         PropertyChanges {
                             target: word_list_menu_icon
                             color: colors[2]
@@ -164,9 +172,12 @@ Item {
                     if (word_list_menu_rpt.last_activated_index !== -1) {
                         word_list_menu_rpt.itemAt(
                                     word_list_menu_rpt.last_activated_index).state = 'normal'
+                        if (!activated) {
+                            return
+                        }
                     }
-                    word_list_menu_rpt.last_activated_index = index
                     wordlist_category_list.menu_activated(modelData[0])
+                    word_list_menu_rpt.last_activated_index = index
                 }
             }
         }

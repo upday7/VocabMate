@@ -1,4 +1,6 @@
 import QtQuick 2.9
+import QtQuick.Controls 2.4
+import QtQuick.Layouts 1.3
 
 //A section contains
 Item {
@@ -8,6 +10,7 @@ Item {
 
     id: wordlist_section
     signal clicked
+    signal createGame(string game_type)
 
     width: 400
     height: childrenRect.height
@@ -50,10 +53,17 @@ Item {
     }
 
     Text {
+
+        anchors {
+            top: wordlist_section_des.bottom
+            topMargin: 10
+            verticalCenter: wordlist_section_des.verticalCenter
+            left: parent.left
+            leftMargin: 10
+        }
+
         id: wordlist_section_more
-        anchors.top: wordlist_section_des.bottom
-        anchors.topMargin: 10
-        anchors.horizontalCenter: parent.horizontalCenter
+        Layout.fillWidth: true
         width: parent.width - 10
         color: "#2E5586"
         text: '45 words'
@@ -65,6 +75,98 @@ Item {
         wrapMode: Text.WrapAnywhere
     }
 
+    ButtonGroup {
+
+        buttons: create_game_buttons.children
+    }
+
+    Row {
+        spacing: 5
+        id: create_game_buttons
+
+        anchors {
+            top: wordlist_section_des.bottom
+            topMargin: 10
+            bottomMargin: 5
+            right: parent.right
+            rightMargin: 10
+        }
+
+        Button {
+
+            property string game_type: "p"
+            text: "<font color='#ffffff'>Practice</font>"
+            font {
+                pixelSize: 12
+                family: "open sans"
+                bold: true
+            }
+
+            background: Rectangle {
+                anchors.fill: parent
+                color: "#6AB14B"
+                radius: 8
+            }
+
+            MouseArea {
+
+                anchors {
+                    fill: parent
+                }
+                hoverEnabled: true
+                onEntered: {
+                    wordlist_section.state = "hovering"
+                }
+                onExited: {
+                    wordlist_section.state = "normal"
+                }
+                onClicked: {
+                    wordlist_section.createGame(parent.game_type)
+                }
+                onPressedChanged: {
+                    parent.scale = parent.scale === 0.98 ? 1 : 0.98
+                }
+                z: 99
+            }
+        }
+        Button {
+            property string game_type: "j"
+            text: "<font color='#ffffff'>Jam</font>"
+            font {
+                pixelSize: 12
+                family: "open sans"
+                bold: true
+            }
+
+            background: Rectangle {
+                anchors.fill: parent
+                color: "#73C5DB"
+                radius: 8
+            }
+
+            MouseArea {
+
+                anchors {
+                    fill: parent
+                }
+                hoverEnabled: true
+                onEntered: {
+                    wordlist_section.state = "hovering"
+                }
+                onExited: {
+                    wordlist_section.state = "normal"
+                }
+                onClicked: {
+                    wordlist_section.createGame(parent.game_type)
+                }
+                onPressedChanged: {
+                    parent.scale = parent.scale === 0.98 ? 1 : 0.98
+                }
+                z: 99
+            }
+        }
+    }
+
     MouseArea {
         id: wordlist_section_ma
         anchors {
@@ -72,19 +174,19 @@ Item {
         }
         hoverEnabled: true
         onEntered: {
-            parent.state = "hovering"
-            cursorShape = Qt.PointingHandCursor
+            wordlist_section.state = "hovering"
         }
         onExited: {
-            parent.state = "normal"
-            cursorShape = Qt.ArrowCursor
+            wordlist_section.state = "normal"
         }
-        onPressedChanged: {
-            parent.scale = parent.scale == 0.98 ? 1 : 0.98
-        }
+
         onClicked: {
             parent.clicked()
         }
+        onPressedChanged: {
+            parent.scale = parent.scale === 0.98 ? 1 : 0.98
+        }
+        z: -1
     }
     state: "normal"
     states: [
@@ -103,4 +205,8 @@ Item {
             }
         }
     ]
+
+    Component.onCompleted: {
+        height += 10
+    }
 }

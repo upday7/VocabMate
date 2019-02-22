@@ -1,3 +1,4 @@
+import json
 import logging
 
 from PySide2.QtCore import Signal, QJsonValue, Slot, Property as QProperty, QJsonArray
@@ -70,16 +71,45 @@ class VCPracticeAPIObj(BridgeObj):
     def cur_word_leaning_progress(self):
         return self.p.current_word_leaning_progress
 
+    @Slot()
+    def clear_cache(self):
+        self.p.clear_cache()
+
+    @QProperty(bool, )
+    def is_logged_in(self):
+        return self.p.is_logged_in
+
 
 class VCWordListAPIObj(BridgeObj):
+    loadingWordList = Signal()
+    wordListLoaded = Signal(str)  # json string
 
     def __init__(self):
         super(VCWordListAPIObj, self).__init__()
         self.p = VocabLists()
 
-    @Slot(str, result=QJsonArray)
+    @Slot(str, )
     def get_wordlist_sections(self, category_id: str):
+        self.loadingWordList.emit()
+
         if category_id == "*":
-            return QJsonArray.fromVariantList(self.p.to_dict(self.p.featured_lists))
-        list_data = self.p.get_category_wordlist(category_id)
-        return QJsonArray.fromVariantList(self.p.to_dict([{'category': list_data[0].category, "lists": list_data}]))
+            def _get_featured_lists():
+                return json.dumps(self.p.to_dict(self.p.featured_lists), skipkeys=True, )
+
+            self.ac(_get_featured_lists, self.wordListLoaded.emit, )
+
+            return
+
+        def _get_category_data():
+            list_data = self.p.get_category_wordlist(category_id)
+            return json.dumps(self.p.to_dict([{'category': list_data[0].category, "lists": list_data}]), skipkeys=True)
+
+        self.ac(_get_category_data, self.wordListLoaded.emit, )
+
+    @QProperty(bool)
+    def is_logged_in(self):
+        return self.p.is_logged_in
+
+    @Slot()
+    def clear_cache(self):
+        self.p.clear_cache()

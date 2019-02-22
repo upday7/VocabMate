@@ -1,5 +1,6 @@
 import atexit
 import base64
+import json
 import logging
 import re
 from pathlib import Path
@@ -19,6 +20,9 @@ from vm.exceptions import APIGetError
 
 
 class VocabAPI:
+    s = Session()
+    cache = Cache(CACHE_DIR)
+
     BASE_URL = "https://www.vocabulary.com"
     API_BASE_URL = 'https://api.vocab.com/1.0'
     PLAY_URL = BASE_URL + "/play"
@@ -39,8 +43,6 @@ class VocabAPI:
         self._access_token = ''
         self._me_info = None  # type: MeRsp
 
-        self.s = Session()
-        self.cache = Cache(CACHE_DIR)
         if self.cache.get("cookies"):
             self.s.cookies = self.cache['cookies']
         self.s.headers.update(
@@ -59,13 +61,31 @@ class VocabAPI:
 
         self.s.headers.update({'authorization': f'Bearer {self.access_token}'})
 
-    def login(self, user_name, password) -> str:
+    def clear_cache(self):
+        self.cache.clear()
 
+    @property
+    def is_logged_in(self) -> bool:
+        logging.debug("Check logging status ..")
+        if not self.cache.get("cookies"):
+            logging.debug(f"logged in: {False}")
+            return False
+        try:
+            is_logged_in = bool(json.loads(self.get("https://www.vocabulary.com/account/activities.json?limit=1")))
+        except json.JSONDecodeError:
+            is_logged_in = False
+        logging.debug(f"logged in: {is_logged_in}")
+        return is_logged_in
+
+    def login(self, user_name, password) -> str:
+        if self.is_logged_in:
+            return ''
         # login procedure
         login_data = {
             'username': user_name,
             'password': password,
-            '.cb-autoLogon': '1'
+            '.cb-autoLogon': 1,
+            'autoLogon': True
         }
         login_rqs = self.s.post(self.LOGIN_URL, data=login_data)
         login_rqs.raise_for_status()  # todo: solve the http request err
@@ -77,6 +97,7 @@ class VocabAPI:
         if error_tag:
             error_msg = error_tag.find(class_='msg').text
             return error_msg
+        # self.is_logged_in = True
         return ''
 
     @property
@@ -101,7 +122,7 @@ class VocabAPI:
             r_list.append(auto_item)
         return r_list
 
-    def get_word_progress(self, word: str) -> WordProgressRsp:
+    def get_word_progress(self, word: str) -> Union[WordProgressRsp, None]:
         try:
             rsp = self.s.get(self.APL_WORD_PROGRESS_URL + f"/{word}")
         except ConnectionError as exc:
@@ -128,17 +149,21 @@ class VocabAPI:
                 value=word_prg_box.progress.value,
                 priority=word_prg_box.progress.priority
             )
-        return WordProgressRsp(
-            word=word_prg_box.word,
-            sense=WordSense(id=word_prg_box.sense.id,
-                            part_of_speech=word_prg_box.sense.part_of_speech,
-                            audio=self.get_first_audio_url(word_prg_box.sense),
-                            definition=word_prg_box.sense.definition,
-                            ordinal=word_prg_box.sense.ordinal),
-            progress=progress,
-            pkv=word_prg_box.get('pkv', None),
-            learnable=word_prg_box.learnable
-        )
+        try:
+            return WordProgressRsp(
+                word=word_prg_box.word,
+                sense=WordSense(id=word_prg_box.sense.id,
+                                part_of_speech=word_prg_box.sense.part_of_speech,
+                                audio=self.get_first_audio_url(word_prg_box.sense),
+                                definition=word_prg_box.sense.definition,
+                                ordinal=word_prg_box.sense.ordinal),
+                progress=progress,
+                pkv=word_prg_box.get('pkv', None),
+                learnable=word_prg_box.learnable
+            )
+        except BoxKeyError:
+            # fixme box.BoxKeyError: "'Box' object has no attribute 'word'"
+            return None
 
     def set_word_priority(self, word: str, priority: EnumLearningPriority) -> bool:
         rsp = self.s.post(self.SET_PRIORITY_URL, {'word': word, "priority": priority.value})

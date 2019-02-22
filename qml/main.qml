@@ -8,7 +8,7 @@ import "Forms/WordList"
 import pyAPIBridge 1.0
 
 Window {
-    id: window
+    id: root
     maximumWidth: 1080
     minimumWidth: 1080
     minimumHeight: 480
@@ -47,20 +47,34 @@ Window {
     StackView {
         id: stack
         anchors.fill: parent
-        initialItem: FormWordlist {
-            anchors.fill: parent
+    }
+
+    Component.onCompleted: {
+        if (!$api.is_logged_in) {
+            stack.push(comp_login_form)
+        } else {
+            stack.push(comp_question_form)
         }
     }
 
-    //    FormLogin {
-    //                id: login_form
-    //                anchors.centerIn: parent
-    //            }
-    //    Connections {
-    //        target: login_form
-    //        onSuccess: {
-    //            stack.pop()
-    //            stack.push("Forms/FormQuestion.qml")
-    //        }
-    //    }
+    Component {
+        id: comp_login_form
+        FormLogin {
+            id: login_form
+            anchors.centerIn: stack
+            Connections {
+                onSuccess: {
+                    stack.pop()
+                    stack.push(comp_question_form)
+                }
+            }
+        }
+    }
+
+    Component {
+        id: comp_question_form
+        FormQuestion {
+            id: question_form
+        }
+    }
 }
