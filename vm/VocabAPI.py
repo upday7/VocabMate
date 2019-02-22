@@ -248,24 +248,44 @@ class VocabLists(VocabAPI):
     def __init__(self):
         super(VocabLists, self).__init__()
 
+    def to_dict(self, _list: List[Dict[str, Union[str, WordList]]]) -> list:
+        r_list = []
+        for word_list_dict in _list:
+            _ = []
+            _.extend([asdict(i) for i in word_list_dict['lists']])
+            r_list.append({
+                'category': word_list_dict['category'],
+                'lists': _
+            })
+        return r_list
+
     @property
-    def featured_lists(self) -> Dict[str, List[WordList]]:
+    def featured_lists(self) -> List[Dict[str, Union[str, WordList]]]:
         list_url = self.BASE_URL + "/lists/"
         bs = self.get_bs(list_url)
-        featured_lists = {}
+        featured_lists = []
         for section in bs.select("section"):
             section = section  # type: Tag
             lists = self._get_list(section)
             if not lists:
                 continue
-            featured_lists[lists[0].category] = lists
+            featured_lists.append({})
+            featured_lists[-1]['category'] = lists[0].category
+            featured_lists[-1]['lists'] = lists
         return featured_lists
 
-    def get_category_list(self, category: EnumWordListCategory):
+    def get_category_wordlist(self, category: Union[str, EnumWordListCategory]):
         category_list_url = self.BASE_URL + f"/lists/bycategory.ui?" \
-            f"tag={category.value[0]}&limit=45"
+            f"tag={category.value[0] if isinstance(category, EnumWordListCategory) else category}&limit=45"
         bs = self.get_bs(category_list_url)
-        return self._get_list(bs, category.value[1])
+
+        if isinstance(category, EnumWordListCategory):
+            category_verbose = category.value[1]
+        else:
+            category_verbose = [a for a in [getattr(EnumWordListCategory, c)
+                                            for c in EnumWordListCategory.__members__]
+                                if a.value[0] == category][0].value[1]
+        return self._get_list(bs, category_verbose)
 
     def _get_list(self, t: Tag, category='') -> Union[List[WordList], None]:
         if not category:
@@ -291,7 +311,8 @@ class VocabLists(VocabAPI):
                     name=list_name_text,
                     description=description_text,
                     url=list_url,
-                    total_words=total_words_text
+                    total_words=total_words_text,
+                    id_=int(list_url.split("/")[-1])
                 )
             )
         return lists

@@ -8,7 +8,7 @@ from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication
 
 from vm.const import VERSION, LOGGING_HANDLERS, BETA, APP_NAME_VERBOSE
-from vqt.bridge.vocab_com import VocabComAPIObj
+from vqt.bridge.vocab_com import VCPracticeAPIObj, VCWordListAPIObj
 
 
 class VMApplication(QApplication):
@@ -42,7 +42,8 @@ class VMApplication(QApplication):
 
     @staticmethod
     def register_types():
-        qmlRegisterType(VocabComAPIObj, 'pyAPIBridge', 1, 0, 'VocabComAPIObj')
+        qmlRegisterType(VCPracticeAPIObj, 'pyAPIBridge', 1, 0, 'VCPracticeAPI')
+        qmlRegisterType(VCWordListAPIObj, 'pyAPIBridge', 1, 0, 'VCWordListAPI')
 
     def setup_engine(self):
         self.engine = QQmlApplicationEngine(self)

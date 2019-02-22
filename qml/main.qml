@@ -3,6 +3,7 @@ import QtQuick.Window 2.3
 import QtQuick.Controls 2.4
 import "Forms"
 import "FontAwesome"
+import "Forms/WordList"
 
 import pyAPIBridge 1.0
 
@@ -16,8 +17,9 @@ Window {
     title: qsTr("Vocabulary Mate")
     color: "#293529"
 
-    property var $api: VocabComAPIObj {
+    property var $api: VCPracticeAPI {
     }
+
     property var $awesome: FontAwesomeLoader {
         resource: "../res/fonts/Fontawesome-Webfont.ttf"
     }
@@ -45,17 +47,20 @@ Window {
     StackView {
         id: stack
         anchors.fill: parent
-        initialItem: FormLogin {
-            id: login_form
-            anchors.centerIn: parent
+        initialItem: FormWordlist {
+            anchors.fill: parent
         }
     }
 
-    Connections {
-        target: login_form
-        onSuccess: {
-            stack.pop()
-            stack.push("Forms/FormQuestion.qml")
-        }
-    }
+    //    FormLogin {
+    //                id: login_form
+    //                anchors.centerIn: parent
+    //            }
+    //    Connections {
+    //        target: login_form
+    //        onSuccess: {
+    //            stack.pop()
+    //            stack.push("Forms/FormQuestion.qml")
+    //        }
+    //    }
 }

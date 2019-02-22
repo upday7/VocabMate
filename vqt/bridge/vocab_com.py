@@ -1,31 +1,13 @@
 import logging
-from collections import Callable
-from functools import partial
 
-from PySide2.QtCore import QObject, Signal, QJsonValue, Slot, QThreadPool, QRunnable, Property as QProperty, QJsonArray
+from PySide2.QtCore import Signal, QJsonValue, Slot, Property as QProperty, QJsonArray
 from dataclasses import asdict
 
-from vm.VocabAPI import VocabPractice, ChallengeRsp
+from vm.VocabAPI import ChallengeRsp, VocabPractice, VocabLists
+from vqt.bridge import BridgeObj
 
 
-class _AsyncRunner(QRunnable, QObject):
-    done = Signal(object)
-
-    def __init__(self, func: Callable, callback: Callable, *func_args, **func_kwargs):
-        QRunnable.__init__(self)
-        QObject.__init__(self)
-        self.callable = partial(func, *func_args, **func_kwargs)
-        self.callback = partial(callback)
-
-    def run(self):
-        self.done.connect(self.callback)
-        res = self.callable()
-        logging.debug(f"AsyncRunner response: {res}")
-        self.done.emit(res)
-        self.done.disconnect(self.callback)
-
-
-class VocabComAPIObj(QObject):
+class VCPracticeAPIObj(BridgeObj):
     signingIn = Signal(bool)
     loggedIn = Signal(str)
 
@@ -37,17 +19,9 @@ class VocabComAPIObj(QObject):
     simpleDefGot = Signal(str)
 
     def __init__(self):
-        super(VocabComAPIObj, self).__init__()
-        self.loading.emit(True)
+        super(VCPracticeAPIObj, self).__init__()
         self.p = VocabPractice()
-        self._async_pool = QThreadPool(self)
-
-    def ac(self, func: Callable, callback: Callable, *func_args, **func_kwargs, ):
-        """
-        Async Call function
-        """
-        _async = _AsyncRunner(func, callback, *func_args, **func_kwargs)
-        self._async_pool.globalInstance().start(_async)
+        self.loading.emit(True)
 
     @Slot()
     def get_question(self):
@@ -95,3 +69,17 @@ class VocabComAPIObj(QObject):
     @QProperty(float, )
     def cur_word_leaning_progress(self):
         return self.p.current_word_leaning_progress
+
+
+class VCWordListAPIObj(BridgeObj):
+
+    def __init__(self):
+        super(VCWordListAPIObj, self).__init__()
+        self.p = VocabLists()
+
+    @Slot(str, result=QJsonArray)
+    def get_wordlist_sections(self, category_id: str):
+        if category_id == "*":
+            return QJsonArray.fromVariantList(self.p.to_dict(self.p.featured_lists))
+        list_data = self.p.get_category_wordlist(category_id)
+        return QJsonArray.fromVariantList(self.p.to_dict([{'category': list_data[0].category, "lists": list_data}]))

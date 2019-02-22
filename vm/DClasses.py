@@ -227,6 +227,7 @@ class WordList:
     description: str
     url: str
     total_words: str
+    id_: int
 
 
 # endregion

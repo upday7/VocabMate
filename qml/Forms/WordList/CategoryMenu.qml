@@ -27,7 +27,7 @@ Item {
         }
     }
     ColumnLayout {
-        spacing: 10
+        spacing: 5
         Repeater {
             id: word_list_menu_rpt
             model: [['*', 'Featured List'], ["TST", "Test Prep"], ["ROOTS", "Morphology & Roots"], ["LIT", "Literature"], ["NON", 'Non-Fiction'], ["HIS", "Historical Documents"], ["SPH", "Speeches"], ["FUN", 'Just for Fun'], ["NWS", 'News']]
@@ -50,7 +50,7 @@ Item {
                     }
                     font {
                         family: "SS Standard"
-                        pixelSize: 18
+                        pixelSize: 14
                     }
                 }
 
@@ -60,7 +60,7 @@ Item {
 
                     font {
                         family: "open sans"
-                        pixelSize: 18
+                        pixelSize: 14
                     }
                     color: colors[1]
                     anchors {
@@ -89,12 +89,14 @@ Item {
                         if (activated) {
                             return
                         }
+                        cursorShape = Qt.PointingHandCursor
                         parent.state = "hovering"
                     }
                     onExited: {
                         if (activated) {
                             return
                         }
+                        cursorShape = Qt.ArrowCursor
                         parent.state = "normal"
                     }
                     onClicked: {
@@ -120,6 +122,7 @@ Item {
                         PropertyChanges {
                             target: word_list_menu_line
                             opacity: 0.5
+                            color: colors[1]
                         }
                     },
                     State {
@@ -132,6 +135,7 @@ Item {
                         PropertyChanges {
                             target: word_list_menu_line
                             opacity: 1
+                            color: colors[2]
                         }
                     },
                     State {
@@ -151,6 +155,7 @@ Item {
                         PropertyChanges {
                             target: word_list_menu_line
                             opacity: 1
+                            color: colors[2]
                         }
                     }
                 ]
@@ -160,7 +165,6 @@ Item {
                         word_list_menu_rpt.itemAt(
                                     word_list_menu_rpt.last_activated_index).state = 'normal'
                     }
-                    console.log(index, " menu item activated:", modelData)
                     word_list_menu_rpt.last_activated_index = index
                     wordlist_category_list.menu_activated(modelData[0])
                 }
