@@ -21,15 +21,14 @@ ColumnLayout {
         Layout.fillWidth: true
         wrapMode: Text.Wrap
         font {
-
         }
     }
 
     ColumnLayout {
 
         spacing: 10
-        Layout.fillWidth: true
-        Layout.fillHeight: true
+        //        Layout.fillWidth: true
+        //        Layout.fillHeight: true
         Repeater {
             id: rpt
             QuestionRadioItem {

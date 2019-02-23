@@ -127,7 +127,6 @@ Item {
             text: qsTr("I'm a labe")
             font {
 
-
                 bold: true
             }
         }
@@ -136,23 +135,19 @@ Item {
             id: short_def_metrics
             elide: Qt.ElideRight
             elideWidth: ratio_item.width * 0.8
+            text: qsTr("I'm a labe")
         }
-        ColumnLayout {
-            spacing: 5
+        Column {
             anchors.verticalCenter: parent.verticalCenter
             x: outter_circle.width + 20
             width: parent.width * .9 - parent.height * 0.9 - 10
+            Layout.fillHeight: true
             Text {
                 id: label
                 text: label_metrics.elidedText
                 textFormat: Text.PlainText
-
                 color: "#3D588A"
-
-                fontSizeMode: Text.Fit
                 font {
-
-                    //            pixelSize: parent.width / 30
                     bold: true
                 }
             }
@@ -165,7 +160,6 @@ Item {
                 color: "#000000"
                 font.italic: true
                 font {
-
                     bold: false
                 }
             }

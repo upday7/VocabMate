@@ -1,9 +1,12 @@
 import logging
+import os
 import sys
 # noinspection PyUnresolvedReferences
 from pathlib import Path
 
-from PySide2.QtCore import Qt, QProcessEnvironment
+os.environ["QSG_RENDER_LOOP"] = "basic"
+
+from PySide2.QtCore import Qt
 from PySide2.QtGui import QIcon, QWindow, QFontDatabase, QFont
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication
@@ -15,6 +18,7 @@ from vqt.bridge.vocab_com import VCPracticeAPIObj, VCWordListAPIObj
 class VMApplication(QApplication):
     def __init__(self, *args):
         self.setup_qgui_attrs()
+
         super(VMApplication, self).__init__(*args)
         self.setup_logging()
         self.engine = None
@@ -28,11 +32,6 @@ class VMApplication(QApplication):
         self.setApplicationName(APP_NAME_VERBOSE)
         self.setWindowIcon(QIcon("qml/res/img/icon.png"))
         self.load_fonts()
-
-        self.env = QProcessEnvironment.systemEnvironment()
-
-        if sys.platform == 'win32':
-            self.env.insert("QSG_RENDER_LOOP", "basic")
 
         logging.info("Stating Vocab Mate")
 

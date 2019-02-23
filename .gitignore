@@ -5,6 +5,7 @@ out
 gen
 *.pyc
 # virtual enviroment
+_env_win
 _env
 venv
 */.vscode
