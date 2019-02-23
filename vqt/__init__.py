@@ -3,7 +3,7 @@ import sys
 # noinspection PyUnresolvedReferences
 from pathlib import Path
 
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QProcessEnvironment
 from PySide2.QtGui import QIcon, QWindow, QFontDatabase, QFont
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication
@@ -28,6 +28,12 @@ class VMApplication(QApplication):
         self.setApplicationName(APP_NAME_VERBOSE)
         self.setWindowIcon(QIcon("qml/res/img/icon.png"))
         self.load_fonts()
+
+        self.env = QProcessEnvironment.systemEnvironment()
+
+        if sys.platform == 'win32':
+            self.env.insert("QSG_RENDER_LOOP", "basic")
+
         logging.info("Stating Vocab Mate")
 
     def setup_qgui_attrs(self):
