@@ -20,6 +20,9 @@ ColumnLayout {
         textFormat: Text.RichText
         Layout.fillWidth: true
         wrapMode: Text.Wrap
+        font {
+
+        }
     }
 
     ColumnLayout {

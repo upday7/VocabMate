@@ -7,7 +7,7 @@
 A QML front-end application for [Vocabulary.com](https://www.vocabulary.com/play/).
 
 ## Binaries
-**MaxOSX** is supported (as of current commit)
+Window / MacOSX are both supported. (Not for Linux now)
 
 [Download Here](https://github.com/upday7/VocabMate/releases)
 

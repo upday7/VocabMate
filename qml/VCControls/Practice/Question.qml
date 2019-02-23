@@ -186,7 +186,7 @@ Item {
                 text: 'Leaning Progress: '
                 color: "#A7C98B"
                 font {
-                    family: "open sans"
+
                     bold: true
                 }
             }

@@ -36,7 +36,7 @@ Item {
         opacity: inner_pie.opacity
         fontSizeMode: Text.Fit
         font {
-            family: "open sans"
+
             bold: true
             pixelSize: parent.width * 0.6
         }

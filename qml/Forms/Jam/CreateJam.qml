@@ -16,7 +16,7 @@ Item {
     Text {
         id: create_jam_title
         text: qsTr("Let's start a Vocabulary Jam!")
-        font.family: "open sans"
+
         font.pixelSize: 36
         anchors {
             top: parent.top
@@ -28,13 +28,13 @@ Item {
     //        spacing: 10
     //        Text {
     //            text: qsTr("Source:")
-    //            font.family: "open sans"
+    //
     //            font.pixelSize: 18
     //        }
 
     //        Text {
     //            text: qsTr(word_list_url)
-    //            font.family: "open sans"
+    //
     //            font.pixelSize: 14
     //        }
     //    }
@@ -56,7 +56,7 @@ Item {
             spacing: 10
             Text {
                 text: qsTr("How many questions should the Jam include?")
-                font.family: "open sans"
+
                 font.pixelSize: 18
             }
 
@@ -69,7 +69,7 @@ Item {
             spacing: 10
             Text {
                 text: qsTr("How hard should it be?")
-                font.family: "open sans"
+
                 font.pixelSize: 18
             }
 
@@ -84,7 +84,7 @@ Item {
                 text: qsTr("Game Speed")
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                font.family: "open sans"
+
                 font.pixelSize: 18
             }
 
@@ -98,7 +98,7 @@ Item {
             spacing: 10
             Text {
                 text: qsTr("How many teams?")
-                font.family: "open sans"
+
                 font.pixelSize: 18
             }
 
@@ -111,7 +111,7 @@ Item {
             spacing: 10
             Text {
                 text: qsTr("How do you want to assign teams?")
-                font.family: "open sans"
+
                 font.pixelSize: 18
             }
 
@@ -126,14 +126,14 @@ Item {
             spacing: 10
             Text {
                 text: qsTr("Give me a list url")
-                font.family: "open sans"
+
                 font.pixelSize: 18
             }
 
             TextField {
                 width: parent.width
                 text: word_list_url
-                font.family: "open sans"
+
                 font.pixelSize: 10
                 horizontalAlignment: Text.AlignLeft
                 placeholderText: "url of vocabulary list"
@@ -167,7 +167,7 @@ Item {
             }
 
             font {
-                family: "open sans"
+
                 pointSize: 18
                 bold: hovered ? true : false
             }

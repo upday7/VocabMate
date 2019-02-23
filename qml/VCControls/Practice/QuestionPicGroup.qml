@@ -25,7 +25,7 @@ Rectangle {
             color: "#ffffff"
             textFormat: Text.RichText
             font {
-                family: "open sans"
+
                 pixelSize: 16
             }
             anchors {

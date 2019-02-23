@@ -111,7 +111,7 @@ Rectangle {
                             text: category
                             font {
                                 pixelSize: 24
-                                family: "open sans"
+
                             }
                             wrapMode: Text.WrapAnywhere
                         }

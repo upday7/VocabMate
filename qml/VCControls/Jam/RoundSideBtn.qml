@@ -26,7 +26,7 @@ Button {
 
             font {
                 pixelSize: 32
-                family: "open sans"
+
                 weight: Font.Black
             }
             color: "white"

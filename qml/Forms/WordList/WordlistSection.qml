@@ -31,7 +31,7 @@ Item {
         text: '100 SAT Words Beginning with "A"'
         font {
             pixelSize: 18
-            family: "open sans"
+
             bold: true
         }
         wrapMode: Text.WrapAnywhere
@@ -47,7 +47,7 @@ Item {
         text: 'Learn these words derived from the Latin roots pater and patris, meaning "father."'
         font {
             pixelSize: 12
-            family: "open sans"
+
         }
         wrapMode: Text.WrapAnywhere
     }
@@ -69,7 +69,7 @@ Item {
         text: '45 words'
         font {
             pixelSize: 12
-            family: "open sans"
+
             bold: true
         }
         wrapMode: Text.WrapAnywhere
@@ -98,7 +98,7 @@ Item {
             text: "<font color='#ffffff'>Practice</font>"
             font {
                 pixelSize: 12
-                family: "open sans"
+
                 bold: true
             }
 
@@ -134,7 +134,7 @@ Item {
             text: "<font color='#ffffff'>Jam</font>"
             font {
                 pixelSize: 12
-                family: "open sans"
+
                 bold: true
             }
 

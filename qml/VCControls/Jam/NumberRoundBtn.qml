@@ -17,7 +17,7 @@ RoundButton {
             text: cur_number.toString()
             anchors.centerIn: parent
             font {
-                family: "open sans"
+
                 bold: true
                 pixelSize: q_count_btn.width * 0.4
             }

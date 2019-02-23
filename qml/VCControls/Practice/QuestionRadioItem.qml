@@ -126,7 +126,7 @@ Item {
             id: label_metrics
             text: qsTr("I'm a labe")
             font {
-                family: "open sans"
+
 
                 bold: true
             }
@@ -151,7 +151,7 @@ Item {
 
                 fontSizeMode: Text.Fit
                 font {
-                    family: "open sans"
+
                     //            pixelSize: parent.width / 30
                     bold: true
                 }
@@ -165,7 +165,7 @@ Item {
                 color: "#000000"
                 font.italic: true
                 font {
-                    family: "open sans"
+
                     bold: false
                 }
             }

@@ -30,7 +30,7 @@ ColumnLayout {
         text: qsTr("Spell the word:")
         Layout.alignment: Qt.AlignLeft | Qt.AlignBottom
         font {
-            family: "open sans"
+
             bold: true
             pixelSize: 24
         }

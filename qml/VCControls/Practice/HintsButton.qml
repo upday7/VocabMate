@@ -26,7 +26,7 @@ Item {
             visible: false
             text: "this is a test message of defination"
             elide: Text.ElideRight
-            font.family: "open sans"
+
         }
         Button {
             id: hint_def

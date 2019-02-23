@@ -11,21 +11,7 @@ Item {
 
     height: childrenRect.height
     width: childrenRect.width + 10
-    Repeater {
-        id: fonts_rpt
-        model: ["../../res/fonts/ss-symbolicons-block.woff", "../../res/fonts/ss-standard.woff"]
-        delegate: Item {
-            FontLoader {
-                source: modelData
 
-                onStatusChanged: {
-                    if ((status === FontLoader.Ready)) {
-                        console.log(name, " loaded.")
-                    }
-                }
-            }
-        }
-    }
     ColumnLayout {
         spacing: 5
         Repeater {
@@ -59,7 +45,7 @@ Item {
                     text: modelData[1]
 
                     font {
-                        family: "open sans"
+
                         pixelSize: 14
                     }
                     color: colors[1]

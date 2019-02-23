@@ -49,7 +49,7 @@ Rectangle {
         text: qsTr("text")
 
         font {
-            family: "open sans"
+
             pixelSize: 14
             bold: true
         }

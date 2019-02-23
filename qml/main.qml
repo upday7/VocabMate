@@ -9,6 +9,7 @@ import pyAPIBridge 1.0
 
 Window {
     id: root
+
     maximumWidth: 1080
     minimumWidth: 1080
     minimumHeight: 480
@@ -26,35 +27,20 @@ Window {
     property var $favar: FaVar {
         id: favar
     }
+
     //    Load fonts
-    Repeater {
-        id: fonts_rpt
-        model: ["res/fonts/OpenSans-Bold.ttf", "res/fonts/OpenSans-Italic.ttf", "res/fonts/OpenSans-Regular.ttf", "res/fonts/ss-symbolicons-block.woff", "res/fonts/ss-standard.woff"]
-        delegate: Item {
-            FontLoader {
-                source: modelData
-
-                onStatusChanged: {
-
-                    if ((status === FontLoader.Ready)) {
-                        console.log(name, " loaded.")
-                    }
-                }
-            }
-        }
-    }
-
     StackView {
         id: stack
         anchors.fill: parent
     }
 
     Component.onCompleted: {
-
+        console.log(Qt.platform.os)
         if (!$api.is_logged_in) {
             stack.push(comp_login_form)
         } else {
             stack.push(comp_question_form)
+            //            stack.push(comp_wordlist_form)
         }
     }
 
@@ -76,6 +62,12 @@ Window {
         id: comp_question_form
         FormQuestion {
             id: question_form
+        }
+    }
+
+    Component {
+        id: comp_wordlist_form
+        FormWordlist {
         }
     }
 }

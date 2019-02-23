@@ -15,7 +15,7 @@ Item {
         wrapMode: Text.Wrap
         textFormat: Text.RichText
         font {
-            family: "open sans"
+
             pixelSize: 18
         }
     }
@@ -32,7 +32,7 @@ Item {
         wrapMode: Text.Wrap
 
         font {
-            family: "open sans"
+
             pixelSize: 16
         }
     }

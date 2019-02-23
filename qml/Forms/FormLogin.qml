@@ -68,6 +68,9 @@ Rectangle {
         y: 100
         width: 300
         height: 30
+        bottomPadding: 0
+        topPadding: 0
+        font.weight: Font.Light
         echoMode: TextField.Password
         anchors.horizontalCenterOffset: 0
         horizontalAlignment: Text.AlignHCenter
@@ -101,6 +104,9 @@ Rectangle {
         width: 72
         height: 29
         text: qsTr("<font color='#ffffff'>Sign In</font>")
+        font.capitalization: Font.MixedCase
+        bottomPadding: 1
+        topPadding: 1
         focusPolicy: Qt.NoFocus
         leftPadding: 1
         rightPadding: 1
@@ -112,7 +118,7 @@ Rectangle {
         highlighted: false
         flat: false
         autoRepeat: false
-        font.family: "open sans"
+
         font.bold: false
 
         background: Rectangle {
@@ -141,6 +147,9 @@ Rectangle {
         width: 72
         height: 29
         text: qsTr("<font color='#ffffff'>Try</font>")
+        font.capitalization: Font.MixedCase
+        bottomPadding: 1
+        topPadding: 1
         rightPadding: 1
         leftPadding: 1
         spacing: 0
@@ -151,7 +160,7 @@ Rectangle {
         highlighted: false
         flat: false
         autoRepeat: false
-        font.family: "open sans"
+
         font.bold: false
 
         background: Rectangle {
@@ -162,7 +171,7 @@ Rectangle {
             color: "#6AB14B"
         }
         onClicked: {
-            $api.login("", "")
+            $api.login("", "", login_form_remember_me.on)
         }
         onPressedChanged: {
             this.scale = this.scale < 1 ? 1 : .95
@@ -260,7 +269,7 @@ Rectangle {
         text: qsTr("<font color='#ffffff'>Remember me</font>")
         anchors.horizontalCenter: parent.horizontalCenter
         font: {
-            family: "open sans"
+
         }
         scale: 0.8
     }
