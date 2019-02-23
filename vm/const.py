@@ -10,7 +10,7 @@ from shiboken2 import __version__ as _shiboken_ver
 
 # application settings
 BETA = True
-VERSION = "0.1.5"
+VERSION = "0.1.51"
 APP_NAME_SHORT = 'VocabMate'
 APP_NAME_VERBOSE = 'Vocabulary Mate'
 _stdout_handler = logging.StreamHandler(sys.stdout)

@@ -6,12 +6,26 @@
 
 A QML front-end application for [Vocabulary.com](https://www.vocabulary.com/play/).
 
-## Binaries
+#### Binaries
 Window / MacOSX are both supported. (Not for Linux now)
 
 [Download Here](https://github.com/upday7/VocabMate/releases)
 
-## Screenshots
+#### Run from Source
+
+```bash
+# Clone this repository
+git clone https://github.com/upday7/VocabMate.git
+cd VocabMate
+
+# Install requirements
+python3.6 pip install -r requirements.txt
+
+# Run
+python3.6 VocabMate.py
+```
+
+#### Screenshots
 
 ![](_docs/screens/options.jpg)
 ![](_docs/screens/pic.jpg)
