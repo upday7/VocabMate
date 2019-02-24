@@ -68,10 +68,9 @@ Rectangle {
         y: 100
         width: 300
         height: 30
-        bottomPadding: 0
-        topPadding: 0
-        font.weight: Font.Light
+        font.weight: Font.Normal
         echoMode: TextField.Password
+        passwordCharacter: "*"
         anchors.horizontalCenterOffset: 0
         horizontalAlignment: Text.AlignHCenter
         placeholderText: "Password"
@@ -104,6 +103,7 @@ Rectangle {
         width: 72
         height: 29
         text: qsTr("<font color='#ffffff'>Sign In</font>")
+        font.pixelSize: 14
         font.capitalization: Font.MixedCase
         bottomPadding: 1
         topPadding: 1
@@ -114,7 +114,6 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: -60
         wheelEnabled: false
-        font.pointSize: 14
         highlighted: false
         flat: false
         autoRepeat: false
@@ -147,6 +146,7 @@ Rectangle {
         width: 72
         height: 29
         text: qsTr("<font color='#ffffff'>Try</font>")
+        font.pixelSize: 14
         font.capitalization: Font.MixedCase
         bottomPadding: 1
         topPadding: 1
@@ -156,7 +156,6 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: 60
         wheelEnabled: false
-        font.pointSize: 14
         highlighted: false
         flat: false
         autoRepeat: false
@@ -200,16 +199,16 @@ Rectangle {
 
         MouseArea {
             width: 48
-            anchors.rightMargin: 0
-            anchors.bottomMargin: -29
-            anchors.leftMargin: 0
-            anchors.topMargin: 29
             anchors.fill: parent
 
             hoverEnabled: true
-            onHoveredChanged: {
-                sign_up.font.bold = !sign_up.font.bold
+            onEntered: {
+                parent.font.bold = true
             }
+            onExited: {
+                parent.font.bold = false
+            }
+
             onClicked: {
                 Qt.openUrlExternally(sign_up.sign_up_url)
             }
