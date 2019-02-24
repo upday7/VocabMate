@@ -8,7 +8,7 @@ Rectangle {
 
     width: 400
     height: 260
-    radius: 1
+    radius: 8
     color: "#cc000000"
 
     signal success

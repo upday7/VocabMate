@@ -19,7 +19,7 @@ git clone https://github.com/upday7/VocabMate.git
 cd VocabMate
 
 # Install requirements
-python3.6 pip install -r requirements.txt
+python3.6 pip -m install -r requirements.txt
 
 # Run
 python3.6 VocabMate.py

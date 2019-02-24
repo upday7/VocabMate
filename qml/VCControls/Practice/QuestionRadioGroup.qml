@@ -2,43 +2,39 @@ import QtQuick 2.4
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 
-ColumnLayout {
+Item {
     property alias options: rpt.model
     property alias question_text: question.text
-    //    property string question_text
     signal correctAnswerSelected(var correct, var answer)
     property int radio_lookup_clicked_index
+    property int minWidth: 540
 
     id: main_layout
-    spacing: 20
-    Layout.margins: 20
+
+    width: childrenRect.width
+    height: childrenRect.height
 
     Text {
         id: question
         text: qsTr("Question Text")
         color: "#444444"
         textFormat: Text.RichText
-        Layout.fillWidth: true
         wrapMode: Text.Wrap
-        font {
-        }
+        width: radio_grp_options.width <= minWidth ? minWidth : radio_grp_options.width
     }
 
     ColumnLayout {
+        id: radio_grp_options
+        spacing: 20
+        anchors {
+            top: question.bottom
+            topMargin: 20
+        }
 
-        spacing: 10
-        //        Layout.fillWidth: true
-        //        Layout.fillHeight: true
         Repeater {
             id: rpt
+
             QuestionRadioItem {
-                id: radio_item
-
-                anchors {
-                    leftMargin: 20
-                }
-
-                width: main_layout.width
                 label: modelData.option
                 nonce: modelData.nonce
                 onClicked: {
@@ -62,7 +58,9 @@ ColumnLayout {
             onAnswerBingo: function (idx, answer) {
                 var correct = idx === answer.correct_choice
                 var cur_item = rpt.itemAt(idx)
-
+                if (!cur_item) {
+                    return
+                }
                 cur_item.state = correct ? 'correct' : "incorrect"
                 correctAnswerSelected(correct, answer)
                 if (correct) {
@@ -84,9 +82,6 @@ ColumnLayout {
             }
         }
 
-        Component.onCompleted: {
-            console.log("QuestionRadioGroup load completed, options: ", options)
-        }
     }
 
     function _click_option_item(option_item) {

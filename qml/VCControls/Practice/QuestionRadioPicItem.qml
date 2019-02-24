@@ -1,6 +1,7 @@
 import QtQuick 2.9
 
 Rectangle {
+    property alias source: option_img.source
 
     signal clicked
 

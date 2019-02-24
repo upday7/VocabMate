@@ -28,27 +28,31 @@ Item {
 
     id: main
 
+    PageIndicatorsBar {
+        id: round_indicator
+        total_pages: 10
+        anchors {
+            right: main.right
+            rightMargin: 20
+            bottomMargin: 10
+            topMargin: 20
+        }
+    }
+
     Item {
         id: question_contents
-
-        PageIndicatorsBar {
-            id: round_indicator
-            total_pages: 10
-            scale: 28 / 128
-            y: main.height
-            x: main.width - (128 * scale) * total_pages - (this.row.spacing * scale)
-               * total_pages - (this.label.width * scale) - 20
-        }
+        anchors.fill: parent
 
         QuestionCard {
+            height: main.height * 0.7
             id: cardObj
-            x: main.width
-            y: main.height / 8
+
             sentence: cardData['sentence']
             instruction: cardData['instruction']
             options: cardData['options']
-            height: main.height * 0.7
+
             onCorrectAnswerSelected: function (correct, answer) {
+
                 round_indicator.set_correct(correct)
                 if (!correct) {
                     return
@@ -100,7 +104,7 @@ Item {
                     anchors.fill: parent
                     color: "white"
                     opacity: 0
-                    radius: parent.width
+                    radius: 28
                 }
 
                 onClicked: {
@@ -136,8 +140,15 @@ Item {
 
         WordBlurb {
             id: wordBlurb
-            x: 540 + 30 + (main.width / 28) - 15
-            width: main.width - (540 + 30 + (main.width / 28)) - 30 - 15
+
+            anchors {
+                left: cardObj.right
+                leftMargin: 20
+                verticalCenter: cardObj.verticalCenter
+            }
+
+            width: main.width - cardObj.width - 20 - 30
+
             height: 320
             blurb: {
                 "short": '',
@@ -147,8 +158,13 @@ Item {
 
         NextCardIndicator {
             id: nextCardIndicator
-            x: main.width
-            y: main.height * 3 / 8
+            visible: wordBlurb.visible
+            anchors {
+                left: wordBlurb.right
+                verticalCenter: wordBlurb.verticalCenter
+                leftMargin: 0 - nextCardIndicator.width - 10
+            }
+
             onClicked: {
                 state = 'showExpMore'
                 $api.get_question()
@@ -240,7 +256,6 @@ Item {
             if (rsp.question_content && rsp.question_content.def_) {
                 cardObj.def = rsp.question_content.def_
                 hints_button.btn_hint_def.visible = true
-                console.log("def got from question content: ", cardObj.def)
             }
 
             round_indicator.played_count = rsp['pdata']['round'].length
@@ -288,6 +303,28 @@ Item {
                 target: cur_progress_rect
                 visible: false
             }
+            PropertyChanges {
+                target: wordBlurb
+                visible: false
+            }
+
+            AnchorChanges {
+                target: round_indicator
+                anchors {
+                    top: main.bottom
+                }
+            }
+
+            PropertyChanges {
+                target: cardObj
+                visible: false
+            }
+
+            AnchorChanges {
+                target: cardObj
+                anchors.verticalCenter: question_contents.verticalCenter
+                anchors.horizontalCenter: question_contents.horizontalCenter
+            }
         },
         State {
             name: "newCard"
@@ -298,6 +335,25 @@ Item {
             PropertyChanges {
                 target: cur_progress_rect
                 visible: false
+            }
+            PropertyChanges {
+                target: wordBlurb
+                visible: false
+            }
+            AnchorChanges {
+                target: round_indicator
+                anchors {
+                    bottom: main.bottom
+                }
+            }
+            PropertyChanges {
+                target: cardObj
+                visible: true
+            }
+            AnchorChanges {
+                target: cardObj
+                anchors.verticalCenter: question_contents.verticalCenter
+                anchors.horizontalCenter: question_contents.horizontalCenter
             }
         },
         State {
@@ -310,6 +366,26 @@ Item {
                 target: cur_progress_rect
                 visible: true
             }
+
+            AnchorChanges {
+                target: round_indicator
+                anchors {
+                    bottom: main.bottom
+                }
+            }
+            PropertyChanges {
+                target: wordBlurb
+                visible: true
+            }
+            PropertyChanges {
+                target: cardObj
+                visible: true
+                anchors.leftMargin: 20
+            }
+            AnchorChanges {
+                target: cardObj
+                anchors.left: question_contents.left
+            }
         }
     ]
 
@@ -318,21 +394,11 @@ Item {
         Transition {
             from: "newCard"
             to: "showExpMore"
-            PropertyAnimation {
-                target: cardObj
-                property: "x"
-                from: main.width / 4
-                to: main.width / 28
+            AnchorAnimation {
+                targets: [cardObj, wordBlurb, nextCardIndicator]
                 duration: 200
             }
             ParallelAnimation {
-                PropertyAnimation {
-                    target: wordBlurb
-                    property: "visible"
-                    from: false
-                    to: true
-                }
-
                 PropertyAnimation {
                     target: wordBlurb
                     property: "opacity"
@@ -340,32 +406,19 @@ Item {
                     to: 1
                     duration: 200
                 }
-                PropertyAnimation {
-                    target: wordBlurb
-                    property: "y"
-                    from: main.height / 10
-                    to: main.height / 8
-                    duration: 200
-                }
-            }
-            PropertyAnimation {
-                target: nextCardIndicator
-                property: "x"
-                to: 540 + 30 + (main.width / 28) + wordBlurb.width
-                duration: 200
             }
         },
 
         Transition {
             from: "showExpMore"
             to: "preparing"
+
+            AnchorAnimation {
+                targets: [cardObj, wordBlurb, nextCardIndicator]
+                duration: 200
+            }
+
             ParallelAnimation {
-                PropertyAnimation {
-                    target: cardObj
-                    property: "x"
-                    to: 0 - width
-                    duration: 200
-                }
                 ParallelAnimation {
                     PropertyAnimation {
                         target: wordBlurb
@@ -374,30 +427,17 @@ Item {
                         to: 0
                         duration: 200
                     }
-                    PropertyAnimation {
-                        target: wordBlurb
-                        property: "y"
-                        from: main.height / 8
-                        to: main.height / 10
-                        duration: 200
-                    }
                 }
-                PropertyAnimation {
-                    target: nextCardIndicator
-                    property: "x"
-                    to: main.width
-                    duration: 200
-                }
-                PropertyAnimation {
-                    target: round_indicator
-                    property: "y"
-                    to: main.height
+                AnchorAnimation {
+                    targets: [round_indicator]
+                    duration: 300
                 }
             }
         },
         Transition {
             from: "preparing"
             to: "newCard"
+
             SequentialAnimation {
 
                 PropertyAnimation {
@@ -407,18 +447,9 @@ Item {
                     to: false
                 }
 
-                PropertyAnimation {
-                    target: cardObj
-                    property: "x"
-                    from: main.width
-                    to: main.width / 4
-                    duration: 200
-                }
-
-                PropertyAnimation {
-                    target: round_indicator
-                    property: "y"
-                    to: main.height - 60
+                AnchorAnimation {
+                    targets: [round_indicator]
+                    duration: 300
                 }
             }
         }

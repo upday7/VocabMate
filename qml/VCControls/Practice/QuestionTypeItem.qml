@@ -2,81 +2,79 @@ import QtQuick 2.9
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 2.3
 
-ColumnLayout {
+Item {
     id: typeItem
-    width: 200
-    height: 200
+    width: childrenRect.width
+    height: childrenRect.height
 
     property alias question_text: question.text
     signal correctAnswerSelected(var correct, var answer)
-
+    property int minWidth: 520
     property int max_error_count: 3
-
-    spacing: 20
-    Layout.margins: 20
 
     Text {
         id: question
         text: qsTr("Question Text")
-        Layout.alignment: Qt.AlignLeft | Qt.AlignTop
         color: "#444444"
         textFormat: Text.RichText
-        Layout.fillWidth: true
         wrapMode: Text.WordWrap
+        width: typeItem.minWidth
     }
 
     Text {
         id: spell_label
         text: qsTr("Spell the word:")
-        Layout.alignment: Qt.AlignLeft | Qt.AlignBottom
         font {
-
             bold: true
             pixelSize: 24
+        }
+        anchors {
+            top: question.bottom
+            topMargin: 20
         }
     }
 
     RowLayout {
 
         id: spell_layout
-        Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+
         spacing: 10
 
-        Item {
-            width: childrenRect.width
-            height: childrenRect.height
-            Rectangle {
+        anchors {
+            top: spell_label.bottom
+            topMargin: 20
+        }
+
+        TextField {
+            id: textInput
+
+            Layout.fillWidth: true
+            Layout.minimumWidth: 300
+            Layout.minimumHeight: 35
+            focus: true
+            padding: 5
+            cursorVisible: true
+            font.bold: true
+            background: Rectangle {
                 id: input_bg
                 radius: 3
                 color: "#ffffff"
-                width: 200
-                height: button.height
                 border.width: textInput.activeFocus ? 3 : 2
-            }
-
-            TextInput {
-                id: textInput
-                width: input_bg.width
-                padding: 5
-                cursorVisible: true
-                wrapMode: TextInput.Wrap
-                maximumLength: 30
-                font.bold: true
-                font.pixelSize: textInput.height * .5
-                readOnly: false
-                Keys.onEnterPressed: {
-                    button.clicked()
-                }
+                anchors.fill: parent
+                border.color: textInput.activeFocus ? "#648FE0" : "#ccc"
             }
         }
 
         Button {
             id: button
+            Layout.minimumHeight: textInput.height
+            Layout.minimumWidth: 80
+
             text: "<font color='#ffffff'>" + $favar.fa_pencil + "  SPELL IT</font>"
-            //            text: "<font color='#ffffff'>SPELL IT</font>"
+//                        text: "<font color='#ffffff'>SPELL IT</font>"
             font.bold: true
             font.family: $awesome.name
-            display: AbstractButton.TextBesideIcon
+
             enabled: !textInput.readOnly
             background: Rectangle {
                 radius: 3
@@ -98,8 +96,9 @@ ColumnLayout {
 
         AnimatedImage {
             id: loading
-            width: button.height
-            height: button.height
+
+            Layout.minimumWidth: button.height
+            Layout.minimumHeight: button.height
 
             source: "../../res/img/loading.svg"
             visible: textInput.readOnly
@@ -136,15 +135,16 @@ ColumnLayout {
         }
     }
 
+    onVisibleChanged: {
+        textInput.text =""
+        max_error_count = 3
+    }
+
     state: "normal"
     states: [
 
         State {
             name: "normal"
-            PropertyChanges {
-                target: input_bg
-                border.color: textInput.activeFocus ? "#648FE0" : "#ccc"
-            }
             PropertyChanges {
                 target: textInput
                 readOnly: false

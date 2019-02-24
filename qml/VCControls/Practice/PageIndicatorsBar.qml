@@ -1,41 +1,43 @@
 import QtQuick 2.0
+import QtQuick.Layouts 1.3
 
 Item {
-    property int total_pages
+    property int total_pages: 10
     property int round_number: 0
     property int played_count: 0
     property variant indicatorComponent
     property alias row: row
     property alias label: label
 
-    Row {
+    width: childrenRect.width
+    height: childrenRect.height
+
+    RowLayout {
         id: row
-        spacing: 20
+        spacing: 3
 
         Text {
             id: label
             color: "#BDC0BD"
             text: "Round " + round_number.toString() + ": "
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
             font {
-                family: 'open sans'
-                pixelSize: 72
+                pixelSize: 13
                 bold: true
             }
         }
 
         Repeater {
             id: indicators
-            model: page_indicators_model
+            model: total_pages
+
             delegate: PageNumberIndicator {
-                anchors.verticalCenter: parent.verticalCenter
-                page_number: modelData
+                page_number: modelData + 1
+                width: 18
             }
         }
-    }
-
-    ListModel {
-        id: page_indicators_model
     }
 
     onTotal_pagesChanged: {
@@ -44,16 +46,13 @@ Item {
     onPlayed_countChanged: {
         set_item_current(played_count)
     }
+    Component.onCompleted: {
+        reset_indicators()
+    }
 
     function reset_indicators() {
-        page_indicators_model.clear()
-        if (!indicatorComponent) {
-            indicatorComponent = Qt.createComponent("PageNumberIndicator.qml")
-        }
-        for (var i = 1; i <= total_pages; i++) {
-            page_indicators_model.append({
-                                             "page_number": i.toString()
-                                         })
+        for (var i = 1; i < total_pages; i++) {
+            indicators.itemAt(i).state = "normal"
         }
     }
 

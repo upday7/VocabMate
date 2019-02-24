@@ -1,6 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.3
 import QtQml.Models 2.12
+import QtQuick.Controls 2.4
 
 Rectangle {
 
@@ -9,117 +10,132 @@ Rectangle {
     property string instruction
     property string def
 
-    property var optionsObj
-    property var optionsComponent
-
     signal correctAnswerSelected(var correct, var answer)
 
     id: question_card
-    width: 540
+
     radius: 10
     color: 'white'
     border.color: "#919691"
     border.width: 5
 
-    opacity: 0
+    height: 350
+    width: 540
+
+    QuestionRadioGroup {
+        id: question_radio_grp
+        visible: false
+
+        anchors {
+//            fill: parent
+            centerIn: parent
+            margins: 20
+        }
+
+        onCorrectAnswerSelected: function (correct, answer) {if (!visible) {
+                return
+            }
+            question_card.correctAnswerSelected(correct, answer)
+        }
+        onHeightChanged: {
+
+            if (!visible) {
+                return
+            }
+
+            question_card.height = childrenRect.height + 40
+            question_card.width = childrenRect.width + 40
+        }
+    }
+    QuestionTypeItem {
+        id: question_type_word
+        visible: false
+        anchors {
+           fill: parent
+            margins: 20
+        }
+
+        onCorrectAnswerSelected: function (correct, answer) {if (!visible) {
+                return
+            }
+            question_card.correctAnswerSelected(correct, answer)
+        }
+        onHeightChanged: {
+            if (!visible) {
+                return
+            }
+            question_card.height = 350
+            question_card.width = 540
+        }
+    }
+
+    QuestionPicGroup {
+        id: question_pic_grp
+        visible: false
+
+        anchors {
+            fill: parent
+            margins: 5
+        }
+
+
+        onCorrectAnswerSelected: function (correct, answer) {if (!visible) {
+                return
+            }
+            question_card.correctAnswerSelected(correct, answer)
+        }
+
+        onHeightChanged: {
+            if (!visible) {
+                return
+            }
+
+        }
+    }
+
 
     Connections {
         target: $api
         onNewCard: function (res) {
-            var one_option = res.question_content.choices[0]
-            while (optionsComponent) {
-                optionsComponent.destroy()
-                optionsComponent = null
-            }
 
-            while (optionsObj) {
-                optionsObj.destroy()
-                optionsObj = null
-            }
-
-            function createOptionsGroup(qml_file, qtype) {
-                optionsComponent = Qt.createComponent(qml_file)
-
-                if (optionsComponent.status === Component.Ready
-                        || optionsComponent.status === Component.Error) {
-                    finishCreation(qtype)
-                } else {
-                    optionsComponent.statusChanged.connect(finishCreation)
-                }
-            }
-
-            function finishCreation(qtype) {
-                if (optionsComponent.status === Component.Ready) {
-                    if (qtype !== "T") {
-                        optionsObj = optionsComponent.createObject(
-                                    question_card, {
-                                        "options": res.question_content.choices
-                                    })
-                    } else {
-                        optionsObj = optionsComponent.createObject(
-                                    question_card)
-                    }
-
-                    if (optionsObj === null) {
-                        console.log("Error creating image")
-                    }
-                } else if (optionsComponent.status === Component.Error) {
-                    console.log("Error loading component:",
-                                optionsComponent.errorString())
-                }
-
-                optionsObj.focus = true
-                optionsObj.onCorrectAnswerSelected.connect(
-                            correctAnswerSelected)
-
-                if (qtype === "I") {
-                    optionsObj.width = question_card.width
-                    optionsObj.height = question_card.height
-                    optionsObj.scale = 0.97
-                    optionsObj.color = question_card.border.color
-                    question_card.color = question_card.border.color
-                } else {
-                    if (qtype === "T") {
-                        optionsObj.anchors.fill = question_card
-                        optionsObj.anchors.margins = 20
-                    } else {
-                        question_card.color = "white"
-                        optionsObj.scale = 1
-                        optionsObj.options = res.question_content.choices
-                        optionsObj.anchors.fill = question_card
-                        optionsObj.anchors.margins = 20
-                    }
-                }
-
-                aniFadeOut.start()
-                aniShowup.start()
-            }
+            var options = res.question_content.choices
 
             if (res.qtype === "I") {
-                createOptionsGroup("QuestionPicGroup.qml", res.qtype)
-                optionsObj.question_text = instruction
+                question_radio_grp.visible = false
+                question_pic_grp.visible = true
+                question_type_word.visible = false
+
+                question_pic_grp.question_text = instruction
+                question_pic_grp.options = options
             } else {
                 if (res.qtype === "T") {
-                    createOptionsGroup("QuestionTypeItem.qml", res.qtype)
                     if (sentence) {
                         sentence = "<div style='font-size: 14px;clear: both'>" + sentence + "</div>"
                     }
-
-                    optionsObj.question_text = sentence
+                    question_radio_grp.visible = false
+                    question_pic_grp.visible = false
+                    question_type_word.visible = true
+                    question_type_word.question_text = sentence
                 } else {
-                    createOptionsGroup("QuestionRadioGroup.qml", res.qtype)
-
                     if (sentence) {
                         sentence = "<div style='font-size: 14px;clear: both'>" + sentence + "</div>"
+                        sentence = "<div style='vertical-align: middle;'>" + sentence + "<br>"
+                    } else {
+                        sentence = ""
                     }
 
                     if (instruction) {
                         instruction = "<div style='font-size: 18px'>" + instruction + "</div>"
                     }
 
-                    optionsObj.question_text = "<div style='vertical-align: middle;'>"
-                            + sentence + "<br>" + instruction + "</div>"
-                    console.log("Question text got: ", optionsObj.question_text)
+                    question_radio_grp.visible = true
+                    question_pic_grp.visible = false
+                    question_type_word.visible = false
+
+                    question_radio_grp.question_text = sentence + instruction + "</div>"
+                    question_radio_grp.options = options
+
+
                 }
             }
         }

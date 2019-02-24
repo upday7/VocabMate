@@ -466,6 +466,7 @@ class VocabPractice(VocabAPI):
                         self.download_img(re.search(r"https.+\.jpg", a.__str__()).group(0)).__str__()),
                     a.attrs['nonce']) for a in choices_tag.find_all('a')]
 
+            # pprint(choices)
             content = QuestionContent(
                 sentence=sentence,
                 instructions=instructions,
@@ -565,6 +566,7 @@ class VocabPractice(VocabAPI):
                 logging.warning('rsp_box.qtype == interstitial, restarting ')
                 return self.get_next_question()
             self._question = self._compose_challenge_rsp(rsp_box)
+            self._start_json = self._question
         return self._question
 
     @property

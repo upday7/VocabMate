@@ -6,8 +6,9 @@ Rectangle {
     property var options
     property alias question_text: question.text
     signal correctAnswerSelected(var correct, var answer)
-    id: layout
-    anchors.centerIn: parent
+
+    id: question_pic_grp
+
     Rectangle {
         id: question_bg
         z: 98
@@ -25,7 +26,6 @@ Rectangle {
             color: "#ffffff"
             textFormat: Text.RichText
             font {
-
                 pixelSize: 16
             }
             anchors {
@@ -40,16 +40,30 @@ Rectangle {
         }
     }
 
-    Grid {
+    Grid  {
         anchors.fill: parent
         columnSpacing: 0
+        rowSpacing:0
         columns: 2
+
         Repeater {
             id: rpt
+
             model: options
+//                   [{'nonce': '12',
+//                    'option': '/Users/kylehuang/PycharmProjects/VocabMate/test/support/1.jpg'},
+//                   {'nonce': '2',
+//                    'option': '/Users/kylehuang/PycharmProjects/VocabMate/test/support/2.jpg'},
+//                   {'nonce': '1332',
+//                    'option':'/Users/kylehuang/PycharmProjects/VocabMate/test/support/3.jpg'},
+//                   {'nonce': '1412',
+//                    'option':'/Users/kylehuang/PycharmProjects/VocabMate/test/support/4.jpg'}]
+
             delegate: QuestionRadioPicItem {
-                width: layout.width / 2
-                height: layout.height / 2
+                source: modelData.option
+
+                width:question_pic_grp.width/2
+                height: question_pic_grp.height/2
 
                 onClicked: {
                     this.state = 'checking'
@@ -72,26 +86,27 @@ Rectangle {
                         }
                     }
                 }
+
             }
+
         }
 
-        Connections {
-            target: $api
-            onAnswerBingo: function (idx, answer) {
-                var correct = idx === answer.correct_choice
-                var cur_item = rpt.itemAt(idx)
-                cur_item.state = correct ? 'correct' : "incorrect"
-                correctAnswerSelected(correct, answer)
-                if (correct) {
-                    for (var iidx = 0; iidx < rpt.count; iidx++) {
-                        rpt.itemAt(iidx).invalidOption()
-                    }
-                }
-            }
-        }
-
-        Component.onCompleted: {
-            console.log("QuestionRadioGroup load completed, options: ", options)
-        }
+//        Connections {
+//            target: $api
+//            onAnswerBingo: function (idx, answer) {
+//                var correct = idx === answer.correct_choice
+//                var cur_item = rpt.itemAt(idx)
+//                if (!cur_item) {
+//                    return
+//                }
+//                cur_item.state = correct ? 'correct' : "incorrect"
+//                correctAnswerSelected(correct, answer)
+//                if (correct) {
+//                    for (var iidx = 0; iidx < rpt.count; iidx++) {
+//                        rpt.itemAt(iidx).invalidOption()
+//                    }
+//                }
+//            }
+//        }
     }
 }
