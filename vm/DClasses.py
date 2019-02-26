@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from typing import List, Union
 
@@ -59,12 +60,35 @@ class ChallengeRound2:
 
 
 @dataclass
-class UserWordList:
-    current: bool
+class UserWordlistLeaningProgress:
+    active: bool
+    progress: float
+    mastered_word_count: int
+
+
+@dataclass
+class UserWordlistDetail:
+    starred: bool
+    word_count: int
+    learnable_word_count: int
+    learning_progress: UserWordlistLeaningProgress
+
+
+@dataclass
+class UserWordlist:
     listId: int
     wordcount: int
+    name: str
+    created: datetime.date
+
+
+@dataclass
+class ChallengeWordList(UserWordlist):
+    current: bool
     priority: int
     progress: float
+    listId: int
+    wordcount: int
     name: str
 
 
@@ -76,7 +100,8 @@ class ChallengePData:
     nummastered: int
     a: int
     round: List[ChallengeRound1] = ()
-    lists: List[UserWordList] = ()
+    lists: List[ChallengeWordList] = ()
+
 
 @dataclass
 class Question:

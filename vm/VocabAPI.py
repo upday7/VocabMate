@@ -12,6 +12,7 @@ from box import Box, BoxKeyError
 from bs4 import BeautifulSoup, Tag
 from dataclasses import asdict
 from diskcache import Cache
+from future.backports.datetime import datetime
 from requests import Session
 
 from vm.DClasses import *
@@ -21,8 +22,6 @@ from vm.exceptions import APIGetError
 
 class VocabAPI:
     s = Session()
-    cache = Cache(CACHE_DIR)
-
     BASE_URL = "https://www.vocabulary.com"
     API_BASE_URL = 'https://api.vocab.com/1.0'
     PLAY_URL = BASE_URL + "/play"
@@ -42,7 +41,9 @@ class VocabAPI:
         super(VocabAPI, self).__init__()
         self._access_token = ''
         self._me_info = None  # type: MeRsp
+        self._is_logged_in = None
 
+        self.cache = Cache(CACHE_DIR)
         if self.cache.get("cookies"):
             self.s.cookies = self.cache['cookies']
         self.s.headers.update(
@@ -59,53 +60,62 @@ class VocabAPI:
             }
         )
 
-        self.s.headers.update({'authorization': f'Bearer {self.access_token}'})
-
     def clear_cache(self):
         self.cache.clear()
 
     @property
-    def is_logged_in(self) -> bool:
-        logging.debug("Check logging status ..")
-        if not self.cache.get("cookies"):
-            logging.debug(f"logged in: {False}")
-            return False
-        try:
-            is_logged_in = bool(json.loads(self.get("https://www.vocabulary.com/account/activities.json?limit=1")))
-        except json.JSONDecodeError:
-            is_logged_in = False
-        logging.debug(f"logged in: {is_logged_in}")
-        return is_logged_in
-
-    def login(self, user_name: str, password: str, auto_login: bool) -> str:
-        if self.is_logged_in:
-            return ''
-        # login procedure
-        login_data = {
-            'username': user_name,
-            'password': password,
-            '.cb-autoLogon': int(auto_login),
-            'autoLogon': auto_login
-        }
-        login_rqs = self.s.post(self.LOGIN_URL, data=login_data)
-        login_rqs.raise_for_status()  # todo: solve the http request err
-
-        if login_rqs.status_code != 200:
-            raise NotImplementedError
-        login_bs = BeautifulSoup(login_rqs.content.decode(), features='lxml')  # .errors
-        error_tag = login_bs.find(class_='errors')
-        if error_tag:
-            error_msg = error_tag.find(class_='msg').text
-            return error_msg
-        # self.is_logged_in = True
-        return ''
-
-    @property
     def access_token(self):
         if not self._access_token:
-            rsp = self.s.post(self.API_AUTH_TOKEN_URL)
-            self._access_token = Box.from_json(json_string=rsp.content.decode()).access_token
+            self._access_token = self.refresh_token().access_token
         return self._access_token
+
+    @property
+    def is_logged_in(self) -> bool:
+        logging.debug("Check logging status ..")
+
+        if self._is_logged_in is None:
+            if not self.cache.get("cookies"):
+                logging.debug(f"logged in: {False}")
+                return False
+
+            try:
+                json.loads(self.get("https://www.vocabulary.com/account/activities.json?limit=1"))
+                self._is_logged_in = True
+            except json.JSONDecodeError:
+                self._is_logged_in = False
+            logging.debug(f"logged in: {self._is_logged_in}")
+        return self._is_logged_in
+
+    def login(self, user_name: str, password: str, auto_login: bool) -> str:
+        error_msg = ''
+        if not self.is_logged_in:
+            # login procedure
+            login_data = {
+                'username': user_name,
+                'password': password,
+                '.cb-autoLogon': int(auto_login),
+                'autoLogon': auto_login
+            }
+            login_rqs = self.s.post(self.LOGIN_URL, data=login_data)
+            login_rqs.raise_for_status()  # todo: solve the http request err
+
+            if login_rqs.status_code != 200:
+                raise NotImplementedError
+            login_bs = BeautifulSoup(login_rqs.content.decode(), features='lxml')  # .errors
+            error_tag = login_bs.find(class_='errors')
+            if error_tag:
+                error_msg = error_tag.find(class_='msg').text
+            else:
+                self.cache.set('cookies', self.s.cookies)
+        self._is_logged_in = not bool(error_msg)
+        return error_msg
+
+    def refresh_token(self) -> Box:
+        logging.debug("Refreshing access auth ... ")
+        rsp = self.s.post(self.API_AUTH_TOKEN_URL, {"refresh_token": self.s.cookies.get("guid")})
+        auth_box = Box.from_json(json_string=rsp.content.decode())
+        logging.debug("New access auth:", auth_box)
+        return auth_box
 
     def get_autocomplete_list(self, word: str) -> List[AutoCompleteItem]:
         rsp = self.s.get(self.AUTO_COMPLETE_URL + word)
@@ -203,6 +213,62 @@ class VocabAPI:
                 self._me_info = ChallengeAuth(loggedin=False)
         return self._me_info
 
+    def _get_my_lists(self, my_list_type: str = ""):
+        if not self.is_logged_in:
+            return []
+        url = self.BASE_URL + "/account/lists/" + my_list_type
+        bs = self.get_bs(url)
+        list_table_tag = bs.find(class_='list-list')
+        if not list_table_tag:
+            return []
+        lists = []
+        for tr in list_table_tag.select("tr"):
+            t = [i for i in tr.contents if isinstance(i, Tag)][0].contents[1]
+            list_id = int(re.search("\d+", t['href']).group(0))
+            name = t.contents[0].strip()
+            created_string, total_words = t.span.text.split("(")
+            created_string = created_string.strip()
+            total_words = int(total_words.split(")")[0].strip().split("words")[0].strip())
+            created_date = datetime.strptime(created_string, '%B %d, %Y', ).date()
+
+            lists.append(
+                UserWordlist(listId=list_id, wordcount=total_words, name=name, created=created_date)
+            )
+        return lists
+
+    def get_my_list_detail(self, listid: int) -> UserWordlistDetail:
+        logging.info(f"Getting my word list details: {listid}")
+        url = self.API_BASE_URL + f"/progress/lists/{listid}"
+        rsp_box = self.get_box(url, ensure_auth=True)
+        uwld = UserWordlistDetail(
+            starred=rsp_box.starred,
+            word_count=rsp_box.word_count,
+            learnable_word_count=rsp_box.learnable_word_count,
+            learning_progress=UserWordlistLeaningProgress(
+                active=rsp_box.learning_progress.active,
+                progress=rsp_box.learning_progress.progress,
+                mastered_word_count=rsp_box.learning_progress.mastered_word_count
+            )
+        )
+        logging.info(f"Word list got: ", uwld)
+        return uwld
+
+    @property
+    def my_lists_all(self) -> List[UserWordlist]:
+        return self._get_my_lists()
+
+    @property
+    def my_lists_created(self) -> List[UserWordlist]:
+        return self._get_my_lists("created")
+
+    @property
+    def my_lists_shared(self) -> List[UserWordlist]:
+        return self._get_my_lists("shared")
+
+    @property
+    def my_lists_learning(self) -> List[UserWordlist]:
+        return self._get_my_lists("learning")
+
     def get_word_def(self, word: str) -> WordDef:
         cache_key = f"word_def: {word}"
         if not self.cache.get(cache_key):
@@ -261,8 +327,27 @@ class VocabAPI:
     def get_bs(self, url: str, **kwargs) -> BeautifulSoup:
         return BeautifulSoup(self.get(url, **kwargs), features='lxml')
 
-    def get(self, url: str, **kwargs) -> str:
-        rsp = self.s.get(url, **kwargs)
+    def get_box(self, url: str, **kwargs) -> Box:
+        return Box(**self.get_json(url, **kwargs))
+
+    def get_json(self, url: str, **kwargs) -> dict:
+        return json.loads(self.get(url, **kwargs))
+
+    def get(self, url: str, ensure_auth=False, **kwargs) -> str:
+        param_headers = kwargs.get("headers", {})
+
+        def _ensure_auth():
+            param_headers.update({'authorization': f'Bearer {self.access_token}'})
+
+        if ensure_auth:
+            _ensure_auth()
+
+        rsp = self.s.get(url, headers=param_headers, **kwargs)
+
+        if ensure_auth and rsp.status_code == 403:
+            _ensure_auth()
+            rsp = self.s.get(url, headers=param_headers, **kwargs)
+
         rsp.raise_for_status()
         if rsp.status_code != 200:
             raise APIGetError(url)
@@ -478,6 +563,7 @@ class VocabPractice(VocabAPI):
             content = None
         hints = rsp_box.get('hints', [])
 
+        # noinspection PyArgumentList
         return ChallengeRsp(
             v=rsp_box.v,
             hints=list(hints),
@@ -492,7 +578,7 @@ class VocabPractice(VocabAPI):
                 nummastered=rsp_box.pdata.nummastered,
                 a=rsp_box.pdata.a,
                 round=rounds,
-                lists=[UserWordList(**l) for l in rsp_box.pdata.lists]
+                lists=[ChallengeWordList(**l, ) for l in rsp_box.pdata.lists]
             ),
             auth=ChallengeAuth(loggedin=rsp_box.get('auth', Box(loggedin=False)).loggedin),
             secret=rsp_box.secret,
