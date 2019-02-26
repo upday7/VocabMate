@@ -346,14 +346,16 @@ Item {
                     bottom: main.bottom
                 }
             }
-            PropertyChanges {
-                target: cardObj
-                visible: true
-            }
+
             AnchorChanges {
                 target: cardObj
                 anchors.verticalCenter: question_contents.verticalCenter
                 anchors.horizontalCenter: question_contents.horizontalCenter
+            }
+
+            PropertyChanges {
+                target: cardObj
+                visible: true
             }
         },
         State {
@@ -412,11 +414,6 @@ Item {
         Transition {
             from: "showExpMore"
             to: "preparing"
-
-            AnchorAnimation {
-                targets: [cardObj, wordBlurb, nextCardIndicator]
-                duration: 200
-            }
 
             ParallelAnimation {
                 ParallelAnimation {

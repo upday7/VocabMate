@@ -477,6 +477,7 @@ class VocabPractice(VocabAPI):
         else:
             content = None
         hints = rsp_box.get('hints', [])
+
         return ChallengeRsp(
             v=rsp_box.v,
             hints=list(hints),
@@ -490,7 +491,8 @@ class VocabPractice(VocabAPI):
                 numplayed=rsp_box.pdata.numplayed,
                 nummastered=rsp_box.pdata.nummastered,
                 a=rsp_box.pdata.a,
-                round=rounds
+                round=rounds,
+                lists=[UserWordList(**l) for l in rsp_box.pdata.lists]
             ),
             auth=ChallengeAuth(loggedin=rsp_box.get('auth', Box(loggedin=False)).loggedin),
             secret=rsp_box.secret,

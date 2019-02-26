@@ -59,6 +59,16 @@ class ChallengeRound2:
 
 
 @dataclass
+class UserWordList:
+    current: bool
+    listId: int
+    wordcount: int
+    priority: int
+    progress: float
+    name: str
+
+
+@dataclass
 class ChallengePData:
     points: int
     level: ChallengeLevel
@@ -66,7 +76,7 @@ class ChallengePData:
     nummastered: int
     a: int
     round: List[ChallengeRound1] = ()
-
+    lists: List[UserWordList] = ()
 
 @dataclass
 class Question:
