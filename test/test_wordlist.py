@@ -24,9 +24,7 @@ class TestWordList(unittest.TestCase):
         my_lists = self.api.my_lists_all
         assert my_lists
         list = my_lists[0]
-        a = self.api.get_my_list_detail(list.listId)
-        assert a
-        print(a)
+        assert self.api.get_my_list_detail(list.listId)
         assert self.api.get_my_list_detail(list.listId)
 
     def test_feature_list(self):

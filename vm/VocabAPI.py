@@ -3,8 +3,8 @@ import base64
 import json
 import logging
 import re
+from functools import partial
 from pathlib import Path
-from time import sleep
 from typing import Dict
 
 from PySide2.QtCore import QUrl
@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup, Tag
 from dataclasses import asdict
 from diskcache import Cache
 from future.backports.datetime import datetime
-from requests import Session
+from requests import Session, Request, Response
 
 from vm.DClasses import *
 from vm.const import CACHE_DIR
@@ -21,6 +21,22 @@ from vm.exceptions import APIGetError
 
 
 class VocabAPI:
+    @dataclass
+    class Rsp:
+        rsp: str
+
+        @property
+        def bs(self) -> BeautifulSoup:
+            return BeautifulSoup(self.rsp, features='lxml')
+
+        @property
+        def json(self) -> dict:
+            return json.loads(self.rsp)
+
+        @property
+        def box(self) -> Box:
+            return Box(**self.json)
+
     s = Session()
     BASE_URL = "https://www.vocabulary.com"
     API_BASE_URL = 'https://api.vocab.com/1.0'
@@ -70,6 +86,12 @@ class VocabAPI:
         return self._access_token
 
     @property
+    def auth_header(self) -> dict:
+        if not self.access_token:
+            return {}
+        return {'authorization': f'Bearer {self.access_token}'}
+
+    @property
     def is_logged_in(self) -> bool:
         logging.debug("Check logging status ..")
 
@@ -79,7 +101,7 @@ class VocabAPI:
                 return False
 
             try:
-                json.loads(self.get("https://www.vocabulary.com/account/activities.json?limit=1"))
+                self.get("https://www.vocabulary.com/account/activities.json?limit=1").json
                 self._is_logged_in = True
             except json.JSONDecodeError:
                 self._is_logged_in = False
@@ -96,12 +118,7 @@ class VocabAPI:
                 '.cb-autoLogon': int(auto_login),
                 'autoLogon': auto_login
             }
-            login_rqs = self.s.post(self.LOGIN_URL, data=login_data)
-            login_rqs.raise_for_status()  # todo: solve the http request err
-
-            if login_rqs.status_code != 200:
-                raise NotImplementedError
-            login_bs = BeautifulSoup(login_rqs.content.decode(), features='lxml')  # .errors
+            login_bs = self.post(self.LOGIN_URL, data=login_data).bs
             error_tag = login_bs.find(class_='errors')
             if error_tag:
                 error_msg = error_tag.find(class_='msg').text
@@ -111,17 +128,20 @@ class VocabAPI:
         return error_msg
 
     def refresh_token(self) -> Box:
+        """
+        This function refreshes access auth token
+
+        important: will affect attribute `auth_header` and `access_token`
+
+        :return:
+        """
         logging.debug("Refreshing access auth ... ")
-        rsp = self.s.post(self.API_AUTH_TOKEN_URL, {"refresh_token": self.s.cookies.get("guid")})
-        auth_box = Box.from_json(json_string=rsp.content.decode())
+        auth_box = self.post(self.API_AUTH_TOKEN_URL, data={"refresh_token": self.s.cookies.get("guid")}).box
         logging.debug("New access auth:", auth_box)
         return auth_box
 
     def get_autocomplete_list(self, word: str) -> List[AutoCompleteItem]:
-        rsp = self.s.get(self.AUTO_COMPLETE_URL + word)
-        if rsp.status_code != 200:
-            raise NotImplementedError  # todo
-        rsp_bs = BeautifulSoup(rsp.content.decode(), features='lxml')
+        rsp_bs = self.get(self.AUTO_COMPLETE_URL + word).bs
         r_list = []
         for li in rsp_bs.select("li"):
             freq = li.get('freq', 0)
@@ -133,20 +153,7 @@ class VocabAPI:
         return r_list
 
     def get_word_progress(self, word: str) -> Union[WordProgressRsp, None]:
-        try:
-            rsp = self.s.get(self.APL_WORD_PROGRESS_URL + f"/{word}")
-        except ConnectionError as exc:
-            try_count = 10
-            while try_count:
-                try:
-                    rsp = self.s.get(self.APL_WORD_PROGRESS_URL + f"/{word}")
-                    break
-                except:
-                    pass
-                try_count -= 1
-                sleep(1)
-
-        word_prg_box = Box.from_json(json_string=rsp.content.decode())
+        word_prg_box = self.get(self.APL_WORD_PROGRESS_URL + f"/{word}").box
         progress = None
         if word_prg_box.get('progress'):
             progress = WordProgress(
@@ -188,11 +195,7 @@ class VocabAPI:
     @property
     def meInfo(self) -> MeRsp:
         if not self._me_info:
-            rsp = self.s.get(self.ME_URL)
-            rsp.raise_for_status()  # todo: solve select answer rqs http err
-            if rsp.status_code != 200:
-                raise NotImplementedError  # todo
-            rsp_box = Box.from_json(json_string=rsp.content.decode())
+            rsp_box = self.get(self.ME_URL).box
             if rsp_box.auth.loggedin:
                 self._me_info = MeRsp(
                     validUser=rsp_box.validUser,
@@ -217,7 +220,7 @@ class VocabAPI:
         if not self.is_logged_in:
             return []
         url = self.BASE_URL + "/account/lists/" + my_list_type
-        bs = self.get_bs(url)
+        bs = self.get(url).bs
         list_table_tag = bs.find(class_='list-list')
         if not list_table_tag:
             return []
@@ -239,7 +242,7 @@ class VocabAPI:
     def get_my_list_detail(self, listid: int) -> UserWordlistDetail:
         logging.info(f"Getting my word list details: {listid}")
         url = self.API_BASE_URL + f"/progress/lists/{listid}"
-        rsp_box = self.get_box(url, ensure_auth=True)
+        rsp_box = self.get(url, ensure_auth=True).box
         uwld = UserWordlistDetail(
             starred=rsp_box.starred,
             word_count=rsp_box.word_count,
@@ -273,10 +276,7 @@ class VocabAPI:
         cache_key = f"word_def: {word}"
         if not self.cache.get(cache_key):
             def_url = self.BASE_URL + f"/dictionary/{word}"
-            rsp = self.s.get(def_url)
-            if rsp.status_code != 200:
-                raise not NotImplementedError
-            rsp_bs = BeautifulSoup(rsp.content.decode(), features='lxml')
+            rsp_bs = self.get(def_url).bs
             # get response word
             word_ = ''
             word_tag = rsp_bs.find(class_='dynamictext')
@@ -324,34 +324,33 @@ class VocabAPI:
                            WordDef(word_, audio_url, AnswerBlurb(short_blurb_txt, long_blurb_txt), def_groups))
         return self.cache.get(cache_key)
 
-    def get_bs(self, url: str, **kwargs) -> BeautifulSoup:
-        return BeautifulSoup(self.get(url, **kwargs), features='lxml')
+    def post(self, url: str, ensure_auth: bool = False, **kwargs) -> Rsp:
+        return VocabAPI.Rsp(self._request("POST", url, ensure_auth, **kwargs))
 
-    def get_box(self, url: str, **kwargs) -> Box:
-        return Box(**self.get_json(url, **kwargs))
+    def get(self, url: str, ensure_auth: bool = False, **kwargs) -> Rsp:
+        return VocabAPI.Rsp(self._request("GET", url, ensure_auth, **kwargs))
 
-    def get_json(self, url: str, **kwargs) -> dict:
-        return json.loads(self.get(url, **kwargs))
-
-    def get(self, url: str, ensure_auth=False, **kwargs) -> str:
+    def _request(self, method: str, url, ensure_auth, **kwargs):
         param_headers = kwargs.get("headers", {})
-
-        def _ensure_auth():
-            param_headers.update({'authorization': f'Bearer {self.access_token}'})
-
         if ensure_auth:
-            _ensure_auth()
-
-        rsp = self.s.get(url, headers=param_headers, **kwargs)
-
-        if ensure_auth and rsp.status_code == 403:
-            _ensure_auth()
-            rsp = self.s.get(url, headers=param_headers, **kwargs)
+            param_headers.update(self.auth_header)
+        rqst = Request(method, url, headers=param_headers, **kwargs)
+        rqst.register_hook("response", partial(self._handle_401, method, url, kwargs))
+        rsp = self.s.send(self.s.prepare_request(rqst))
 
         rsp.raise_for_status()
         if rsp.status_code != 200:
             raise APIGetError(url)
         return rsp.content.decode()
+
+    def _handle_401(self, method: str, url: str, rqst_kwargs: Dict, rsp: Response, **kwargs):
+        if rsp.status_code != 401:
+            return rsp
+        self.refresh_token()
+        param_headers = rqst_kwargs.get("headers", {})
+        param_headers.update(self.auth_header)
+        rqst = Request(method, url, headers=param_headers, **rqst_kwargs)
+        return self.s.send(self.s.prepare_request(rqst))
 
 
 class VocabLists(VocabAPI):
@@ -372,7 +371,7 @@ class VocabLists(VocabAPI):
     @property
     def featured_lists(self) -> List[Dict[str, Union[str, WordList]]]:
         list_url = self.BASE_URL + "/lists/"
-        bs = self.get_bs(list_url)
+        bs = self.get(list_url).bs
         featured_lists = []
         for section in bs.select("section"):
             section = section  # type: Tag
@@ -387,7 +386,7 @@ class VocabLists(VocabAPI):
     def get_category_wordlist(self, category: Union[str, EnumWordListCategory]):
         category_list_url = self.BASE_URL + f"/lists/bycategory.ui?" \
             f"tag={category.value[0] if isinstance(category, EnumWordListCategory) else category}&limit=45"
-        bs = self.get_bs(category_list_url)
+        bs = self.get(category_list_url).bs
 
         if isinstance(category, EnumWordListCategory):
             category_verbose = category.value[1]
@@ -643,11 +642,7 @@ class VocabPractice(VocabAPI):
             self._question = self._start_json
         else:
             self._reset_temp_values()
-            rsp = self.s.post(self.NEXT_URL, data=dict(v=0, secret=self.secret))
-            rsp.raise_for_status()  # todo: check next question http request
-            if rsp.status_code != 200:
-                raise NotImplementedError  # todo
-            rsp_box = Box.from_json(json_string=rsp.content.decode())
+            rsp_box = self.post(self.NEXT_URL, data=dict(v=0, secret=self.secret)).box
             if rsp_box.qtype == 'roundSummary':
                 print(rsp_box.qtype)
             if rsp_box.qtype == 'interstitial':
@@ -704,14 +699,8 @@ class VocabPractice(VocabAPI):
 
         if not self._secret:
             atexit.register(self._save_session, )
-
-        rsp = self.s.post(self.START_URL, data=dict(secret=self.cache.get('last_secret', ''), v=2, started=True))
         self.cache.set('last_secret', '')
-
-        rsp.raise_for_status()  # todo: check next question http request
-        if rsp.status_code != 200:
-            raise NotImplementedError  # todo
-        rsp_box = Box.from_json(json_string=rsp.content.decode())
+        rsp_box = self.post(self.START_URL, data=dict(secret=self.cache.get('last_secret', ''), v=2, started=True)).box
         if 'action' in rsp_box.keys():
             logging.info(f"'action' in response data: {rsp_box.action}")
             if rsp_box.action != 'resume':
@@ -720,8 +709,7 @@ class VocabPractice(VocabAPI):
         try:
             self._start_json = self._compose_challenge_rsp(rsp_box, True)
         except Exception as exc:
-            rsp = self.s.get(self.START_URL, )
-            rsp_box = Box.from_json(json_string=rsp.content.decode())
+            rsp_box = self.get(self.START_URL, ).box
             self._start_json = self._compose_challenge_rsp(rsp_box, False)
 
         if self._start_json.cmd == 'newround':
@@ -731,15 +719,9 @@ class VocabPractice(VocabAPI):
         return self._start_json
 
     def verify_answer(self, nonce: str, secret: str) -> SaveAnswerRspV2:
-
         if not self._answer:
             answer_data = {'a': nonce, 'secret': secret, 'v': 2}
-            rqs = self.s.post(self.SAVE_ANSWER_URL, data=answer_data, verify=True)
-            rqs.raise_for_status()  # todo: solve select answer rqs http err
-            # todo: implement answer process
-            if rqs.status_code != 200:
-                raise NotImplementedError  # todo
-            rsp_box = Box.from_json(json_string=rqs.content.decode())
+            rsp_box = self.post(self.SAVE_ANSWER_URL, ensure_auth=True, data=answer_data, ).box
             self._answer = self._compose_answer_rsp(rsp_box)
             if self._answer.round.played_count == 10:
                 self.reset_leaning_progress()

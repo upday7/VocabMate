@@ -83,7 +83,7 @@ class UserWordlist:
 
 
 @dataclass
-class ChallengeWordList(UserWordlist):
+class ChallengeWordList:
     current: bool
     priority: int
     progress: float
