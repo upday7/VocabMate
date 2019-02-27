@@ -68,14 +68,14 @@ Item {
                     for (var iidx = 0; iidx < rpt.count; iidx++) {
                         item = rpt.itemAt(iidx)
                         item.invalidOption()
-                        if ('F,S,H,P'.search(answer.question_type) > -1) {
+                        if ('F,S,H'.search(answer.question_type) > -1) {
                             item.show_btn_lookup()
                         }
                     }
                 }
 
                 // trigger to short def
-                if ('F,S,H,P'.search(answer.question_type) > -1) {
+                if ('F,S,H'.search(answer.question_type) > -1) {
                     radio_lookup_clicked_index = idx
                     $api.get_simple_def(cur_item.label)
                 }
