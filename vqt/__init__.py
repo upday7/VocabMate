@@ -11,7 +11,7 @@ from PySide2.QtGui import QIcon, QWindow, QFontDatabase, QFont
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication
 
-from vm.const import VERSION, LOGGING_HANDLERS, BETA, APP_NAME_VERBOSE
+from vm.const import VERSION, LOGGING_HANDLERS, APP_NAME_VERBOSE, BETA
 from vqt.bridge.vocab_com import VCPracticeAPIObj, VCWordListAPIObj
 
 
@@ -27,10 +27,11 @@ class VMApplication(QApplication):
         self.setup_error_handler()
         self.register_types()
         self.setup_engine()
+        self.load_main()
         self.set_root_obj_attributes()
 
         self.setApplicationName(APP_NAME_VERBOSE)
-        self.setWindowIcon(QIcon("qml/res/img/icon.png"))
+
         self.load_fonts()
 
         logging.info("Stating Vocab Mate")
@@ -63,10 +64,15 @@ class VMApplication(QApplication):
 
     def setup_engine(self):
         self.engine = QQmlApplicationEngine(self)
-        self.engine.load('qml/main.qml', )
+        self.engine.rootContext().setContextProperty("VERSION", VERSION)
+        self.engine.rootContext().setContextProperty("BETA", BETA)
+
+    def load_main(self):
+        # self.engine.load('qml/main.qml', )
+        self.engine.load('qml/start.qml', )
 
     def set_root_obj_attributes(self):
-        self.root_win.setTitle(f"{self.root_win.title()} {VERSION} {'Beta' if BETA else ''}")
+        self.setWindowIcon(QIcon("qml/res/img/icon.png"))
 
     @property
     def root_win(self) -> QWindow:
@@ -78,5 +84,5 @@ class VMApplication(QApplication):
 
 def run():
     app = VMApplication(sys.argv)
-    app.show_win()
+    # app.show_win()
     sys.exit(app.exec_())

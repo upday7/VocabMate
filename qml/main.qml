@@ -7,7 +7,7 @@ import "Forms/WordList"
 
 import pyAPIBridge 1.0
 
-Window {
+ApplicationWindow {
     id: root
 
     maximumWidth: 1080
@@ -41,6 +41,14 @@ Window {
         } else {
             stack.push(comp_question_form)
             //            stack.push(comp_wordlist_form)
+        }
+        this.setTitle(this.title + " v" + VERSION.toString())
+    }
+
+    Connections {
+        target: $splash
+        onLoaded: {
+            root.show()
         }
     }
 

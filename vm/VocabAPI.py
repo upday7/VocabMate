@@ -713,7 +713,7 @@ class VocabPractice(VocabAPI):
         self.cache.set('cookies', self.s.cookies)
         self.cache.set('last_question_code', self.cur_question.code)
 
-    def start(self, wordlistid: int = 2877486) -> ChallengeRsp:
+    def start(self, wordlistid: int = 0) -> ChallengeRsp:
         logging.info(f"Starting vocabulary.com", )
         if not self._secret:
             atexit.register(self._save_session, )
