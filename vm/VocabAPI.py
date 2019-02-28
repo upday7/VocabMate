@@ -6,13 +6,14 @@ import re
 from functools import partial
 from pathlib import Path
 from typing import Dict
+from urllib.parse import urlparse
 
 from PySide2.QtCore import QUrl
+# noinspection PyPackageRequirements
 from box import Box, BoxKeyError
 from bs4 import BeautifulSoup, Tag
 from dataclasses import asdict
 from diskcache import Cache
-from future.backports.datetime import datetime
 from requests import Session, Request, Response
 
 from vm.DClasses import *
@@ -20,24 +21,26 @@ from vm.const import CACHE_DIR
 from vm.exceptions import APIGetError
 
 
+@dataclass
+class Rsp:
+    rsp: str
+
+    @property
+    def bs(self) -> BeautifulSoup:
+        return BeautifulSoup(self.rsp, features='lxml')
+
+    @property
+    def json(self) -> dict:
+        return json.loads(self.rsp)
+
+    @property
+    def box(self) -> Box:
+        return Box(**self.json)
+
+
 class VocabAPI:
-    @dataclass
-    class Rsp:
-        rsp: str
-
-        @property
-        def bs(self) -> BeautifulSoup:
-            return BeautifulSoup(self.rsp, features='lxml')
-
-        @property
-        def json(self) -> dict:
-            return json.loads(self.rsp)
-
-        @property
-        def box(self) -> Box:
-            return Box(**self.json)
-
     s = Session()
+
     BASE_URL = "https://www.vocabulary.com"
     API_BASE_URL = 'https://api.vocab.com/1.0'
     PLAY_URL = BASE_URL + "/play"
@@ -59,6 +62,7 @@ class VocabAPI:
         self._me_info = None  # type: MeRsp
         self._is_logged_in = None
 
+        self.session_pool = {}
         self.cache = Cache(CACHE_DIR)
         if self.cache.get("cookies"):
             self.s.cookies = self.cache['cookies']
@@ -73,6 +77,7 @@ class VocabAPI:
                 "accept-language": "zh-CN,zh;q=0.9",
                 "origin": self.BASE_URL,
                 "referer": self.BASE_URL,
+                "keep-alive": "true"
             }
         )
 
@@ -138,6 +143,7 @@ class VocabAPI:
         logging.debug("Refreshing access auth ... ")
         auth_box = self.post(self.API_AUTH_TOKEN_URL, data={"refresh_token": self.s.cookies.get("guid")}).box
         logging.debug("New access auth:", auth_box)
+        self._access_token = auth_box.access_token
         return auth_box
 
     def get_autocomplete_list(self, word: str) -> List[AutoCompleteItem]:
@@ -153,7 +159,7 @@ class VocabAPI:
         return r_list
 
     def get_word_progress(self, word: str) -> Union[WordProgressRsp, None]:
-        word_prg_box = self.get(self.APL_WORD_PROGRESS_URL + f"/{word}").box
+        word_prg_box = self.get(self.APL_WORD_PROGRESS_URL + f"/{word}", ensure_auth=True).box
         progress = None
         if word_prg_box.get('progress'):
             progress = WordProgress(
@@ -272,6 +278,8 @@ class VocabAPI:
     def my_lists_learning(self) -> List[UserWordlist]:
         return self._get_my_lists("learning")
 
+    # pure
+    # http://app.vocabulary.com/app/1.0/dictionary/search?word=sun
     def get_word_def(self, word: str) -> WordDef:
         cache_key = f"word_def: {word}"
         if not self.cache.get(cache_key):
@@ -325,17 +333,27 @@ class VocabAPI:
         return self.cache.get(cache_key)
 
     def post(self, url: str, ensure_auth: bool = False, **kwargs) -> Rsp:
-        return VocabAPI.Rsp(self._request("POST", url, ensure_auth, **kwargs))
+        return Rsp(self._request("POST", url, ensure_auth, **kwargs))
 
     def get(self, url: str, ensure_auth: bool = False, **kwargs) -> Rsp:
-        return VocabAPI.Rsp(self._request("GET", url, ensure_auth, **kwargs))
+        return Rsp(self._request("GET", url, ensure_auth, **kwargs))
+
+    def get_session(self, val: str):
+        domain = urlparse(val).netloc.lower().strip()
+        if val in self.session_pool:
+            s = Session()
+            self.session_pool[domain] = s
+        else:
+            s = self.session_pool[domain]
+        return s
 
     def _request(self, method: str, url, ensure_auth, **kwargs):
         param_headers = kwargs.get("headers", {})
         if ensure_auth:
             param_headers.update(self.auth_header)
         rqst = Request(method, url, headers=param_headers, **kwargs)
-        rqst.register_hook("response", partial(self._handle_401, method, url, kwargs))
+        if ensure_auth:
+            rqst.register_hook("response", partial(self._handle_401, method, url, kwargs))
         rsp = self.s.send(self.s.prepare_request(rqst))
 
         rsp.raise_for_status()
@@ -694,13 +712,15 @@ class VocabPractice(VocabAPI):
         self.cache.set('cookies', self.s.cookies)
         self.cache.set('last_question_code', self.cur_question.code)
 
-    def start(self) -> ChallengeRsp:
+    def start(self, wordlistid: int = 2877486) -> ChallengeRsp:
         logging.info(f"Starting vocabulary.com", )
-
         if not self._secret:
             atexit.register(self._save_session, )
         self.cache.set('last_secret', '')
-        rsp_box = self.post(self.START_URL, data=dict(secret=self.cache.get('last_secret', ''), v=2, started=True)).box
+        post_data = dict(secret=self.cache.get('last_secret', ''), v=2, started=True)
+        if wordlistid:
+            post_data.update({'wordlistid': wordlistid})
+        rsp_box = self.post(self.START_URL, data=post_data).box
         if 'action' in rsp_box.keys():
             logging.info(f"'action' in response data: {rsp_box.action}")
             if rsp_box.action != 'resume':
