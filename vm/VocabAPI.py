@@ -283,7 +283,8 @@ class VocabAPI:
     def get_word_def(self, word: str) -> WordDef:
         cache_key = f"word_def: {word}"
         if not self.cache.get(cache_key):
-            def_url = self.BASE_URL + f"/dictionary/{word}"
+            # def_url = self.BASE_URL + f"/dictionary/{word}"
+            def_url = f"http://app.vocabulary.com/app/1.0/dictionary/search?word={word}"
             rsp_bs = self.get(def_url).bs
             # get response word
             word_ = ''

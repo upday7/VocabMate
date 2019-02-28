@@ -44,12 +44,13 @@ Item {
         anchors.fill: parent
 
         QuestionCard {
-            height: main.height * 0.7
+            //            height: main.height * 0.7
             id: cardObj
 
             sentence: cardData['sentence']
             instruction: cardData['instruction']
             options: cardData['options']
+            visible: false
 
             onCorrectAnswerSelected: function (correct, answer) {
 
@@ -317,13 +318,7 @@ Item {
 
             PropertyChanges {
                 target: cardObj
-                visible: false
-            }
-
-            AnchorChanges {
-                target: cardObj
-                anchors.verticalCenter: question_contents.verticalCenter
-                anchors.horizontalCenter: question_contents.horizontalCenter
+                anchors.centerIn: question_contents
             }
         },
         State {
@@ -347,15 +342,10 @@ Item {
                 }
             }
 
-            AnchorChanges {
-                target: cardObj
-                anchors.verticalCenter: question_contents.verticalCenter
-                anchors.horizontalCenter: question_contents.horizontalCenter
-            }
-
             PropertyChanges {
                 target: cardObj
                 visible: true
+                anchors.centerIn: question_contents
             }
         },
         State {
@@ -382,11 +372,6 @@ Item {
             PropertyChanges {
                 target: cardObj
                 visible: true
-                anchors.leftMargin: 20
-            }
-            AnchorChanges {
-                target: cardObj
-                anchors.left: question_contents.left
             }
         }
     ]
@@ -397,17 +382,23 @@ Item {
             from: "newCard"
             to: "showExpMore"
             AnchorAnimation {
-                targets: [cardObj, wordBlurb, nextCardIndicator]
+                targets: [wordBlurb, nextCardIndicator]
                 duration: 200
             }
             ParallelAnimation {
                 PropertyAnimation {
                     target: wordBlurb
                     property: "opacity"
-                    from: 0.5
+                    from: 0
                     to: 1
                     duration: 200
                 }
+            }
+
+            PropertyAnimation {
+                target: cardObj
+                property: "x"
+                to: main.x + 20
             }
         },
 
@@ -431,23 +422,14 @@ Item {
                 }
             }
         },
+
         Transition {
             from: "preparing"
             to: "newCard"
 
-            SequentialAnimation {
-
-                PropertyAnimation {
-                    target: wordBlurb
-                    property: "visible"
-                    from: true
-                    to: false
-                }
-
-                AnchorAnimation {
-                    targets: [round_indicator]
-                    duration: 300
-                }
+            AnchorAnimation {
+                targets: [round_indicator]
+                duration: 300
             }
         }
     ]

@@ -27,12 +27,12 @@ Rectangle {
         visible: false
 
         anchors {
-//            fill: parent
             centerIn: parent
             margins: 20
         }
 
-        onCorrectAnswerSelected: function (correct, answer) {if (!visible) {
+        onCorrectAnswerSelected: function (correct, answer) {
+            if (!visible) {
                 return
             }
             question_card.correctAnswerSelected(correct, answer)
@@ -47,15 +47,18 @@ Rectangle {
             question_card.width = childrenRect.width + 40
         }
     }
+
     QuestionTypeItem {
         id: question_type_word
         visible: false
+
         anchors {
-           fill: parent
+            fill: parent
             margins: 20
         }
 
-        onCorrectAnswerSelected: function (correct, answer) {if (!visible) {
+        onCorrectAnswerSelected: function (correct, answer) {
+            if (!visible) {
                 return
             }
             question_card.correctAnswerSelected(correct, answer)
@@ -78,8 +81,8 @@ Rectangle {
             margins: 5
         }
 
-
-        onCorrectAnswerSelected: function (correct, answer) {if (!visible) {
+        onCorrectAnswerSelected: function (correct, answer) {
+            if (!visible) {
                 return
             }
             question_card.correctAnswerSelected(correct, answer)
@@ -89,10 +92,8 @@ Rectangle {
             if (!visible) {
                 return
             }
-
         }
     }
-
 
     Connections {
         target: $api
@@ -134,8 +135,6 @@ Rectangle {
 
                     question_radio_grp.question_text = sentence + instruction + "</div>"
                     question_radio_grp.options = options
-
-
                 }
             }
         }
