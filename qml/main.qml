@@ -40,9 +40,8 @@ ApplicationWindow {
             stack.push(comp_login_form)
         } else {
             stack.push(comp_question_form)
-            //            stack.push(comp_wordlist_form)
         }
-        this.setTitle(this.title + " v" + VERSION.toString())
+        this.setTitle(this.title + " v" + $VERSION.toString())
     }
 
     Connections {

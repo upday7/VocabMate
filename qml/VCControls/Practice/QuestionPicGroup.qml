@@ -8,6 +8,7 @@ Rectangle {
     signal correctAnswerSelected(var correct, var answer)
 
     id: question_pic_grp
+    color: parent.border.color
 
     Rectangle {
         id: question_bg
@@ -40,30 +41,30 @@ Rectangle {
         }
     }
 
-    Grid  {
+    Grid {
         anchors.fill: parent
         columnSpacing: 0
-        rowSpacing:0
+        rowSpacing: 0
         columns: 2
 
         Repeater {
             id: rpt
 
             model: options
-//                   [{'nonce': '12',
-//                    'option': '/Users/kylehuang/PycharmProjects/VocabMate/test/support/1.jpg'},
-//                   {'nonce': '2',
-//                    'option': '/Users/kylehuang/PycharmProjects/VocabMate/test/support/2.jpg'},
-//                   {'nonce': '1332',
-//                    'option':'/Users/kylehuang/PycharmProjects/VocabMate/test/support/3.jpg'},
-//                   {'nonce': '1412',
-//                    'option':'/Users/kylehuang/PycharmProjects/VocabMate/test/support/4.jpg'}]
 
+            //                   [{'nonce': '12',
+            //                    'option': '/Users/kylehuang/PycharmProjects/VocabMate/test/support/1.jpg'},
+            //                   {'nonce': '2',
+            //                    'option': '/Users/kylehuang/PycharmProjects/VocabMate/test/support/2.jpg'},
+            //                   {'nonce': '1332',
+            //                    'option':'/Users/kylehuang/PycharmProjects/VocabMate/test/support/3.jpg'},
+            //                   {'nonce': '1412',
+            //                    'option':'/Users/kylehuang/PycharmProjects/VocabMate/test/support/4.jpg'}]
             delegate: QuestionRadioPicItem {
                 source: modelData.option
 
-                width:question_pic_grp.width/2
-                height: question_pic_grp.height/2
+                width: question_pic_grp.width / 2
+                height: question_pic_grp.height / 2
 
                 onClicked: {
                     this.state = 'checking'
@@ -86,27 +87,25 @@ Rectangle {
                         }
                     }
                 }
-
             }
-
         }
 
-//        Connections {
-//            target: $api
-//            onAnswerBingo: function (idx, answer) {
-//                var correct = idx === answer.correct_choice
-//                var cur_item = rpt.itemAt(idx)
-//                if (!cur_item) {
-//                    return
-//                }
-//                cur_item.state = correct ? 'correct' : "incorrect"
-//                correctAnswerSelected(correct, answer)
-//                if (correct) {
-//                    for (var iidx = 0; iidx < rpt.count; iidx++) {
-//                        rpt.itemAt(iidx).invalidOption()
-//                    }
-//                }
-//            }
-//        }
+        Connections {
+            target: $api
+            onAnswerBingo: function (idx, answer) {
+                var correct = idx === answer.correct_choice
+                var cur_item = rpt.itemAt(idx)
+                if (!cur_item) {
+                    return
+                }
+                cur_item.state = correct ? 'correct' : "incorrect"
+                correctAnswerSelected(correct, answer)
+                if (correct) {
+                    for (var iidx = 0; iidx < rpt.count; iidx++) {
+                        rpt.itemAt(iidx).invalidOption()
+                    }
+                }
+            }
+        }
     }
 }

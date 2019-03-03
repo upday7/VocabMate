@@ -64,8 +64,9 @@ class VMApplication(QApplication):
 
     def setup_engine(self):
         self.engine = QQmlApplicationEngine(self)
-        self.engine.rootContext().setContextProperty("VERSION", VERSION)
-        self.engine.rootContext().setContextProperty("BETA", BETA)
+        ctx = self.engine.rootContext()
+        ctx.setContextProperty("$VERSION", VERSION)
+        ctx.setContextProperty("$BETA", BETA)
 
     def load_main(self):
         # self.engine.load('qml/main.qml', )
@@ -78,11 +79,7 @@ class VMApplication(QApplication):
     def root_win(self) -> QWindow:
         return self.engine.rootObjects()[0]
 
-    def show_win(self):
-        self.root_win.show()
-
 
 def run():
     app = VMApplication(sys.argv)
-    # app.show_win()
     sys.exit(app.exec_())

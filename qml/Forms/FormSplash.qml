@@ -4,15 +4,31 @@ import QtQuick.Window 2.3
 Window {
     id: main_splash
     color: "transparent"
+
     modality: Qt.ApplicationModal
     flags: Qt.SplashScreen | Qt.WindowStaysOnTopHint
+
     x: (Screen.width - splashImage.width) / 2
     y: (Screen.height - splashImage.height) / 2
-    width: splashImage.width
-    height: splashImage.height
+
+    width: splash_rect.width
+    height: splash_rect.height
+
+    Rectangle {
+        id: splash_rect
+        color: "#000000"
+        opacity: 0.8
+        radius: 8
+
+        width: splashImage.width + 20
+        height: splashImage.height + 20
+    }
+
     Image {
         id: splashImage
+        anchors.centerIn: splash_rect
         source: "../res/img/vocab_logo.png"
+        z: 99
     }
 
     signal loaded
@@ -35,12 +51,12 @@ Window {
 
     SequentialAnimation {
         id: show_splash
-        ParallelAnimation {
 
+        ParallelAnimation {
             PropertyAnimation {
                 target: main_splash
                 property: "x"
-                to: 0 - splashImage.width
+                to: 0 - splashImage.width - 50
                 duration: 300
             }
 

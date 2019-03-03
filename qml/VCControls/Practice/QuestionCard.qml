@@ -85,6 +85,7 @@ Rectangle {
             if (!visible) {
                 return
             }
+            console.debug("QuestionPicGroup onCorrectAnswerSelected")
             question_card.correctAnswerSelected(correct, answer)
         }
 

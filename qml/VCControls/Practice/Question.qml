@@ -31,11 +31,28 @@ Item {
     PageIndicatorsBar {
         id: round_indicator
         total_pages: 10
+
         anchors {
-            right: main.right
-            rightMargin: 20
-            bottomMargin: 10
-            topMargin: 20
+
+            bottomMargin: 20
+            horizontalCenter: main.horizontalCenter
+        }
+    }
+
+    Rectangle {
+        property double pctg
+        id: cur_progress
+        height: 2
+
+        width: main.width * pctg
+        anchors {
+            bottom: main.bottom
+        }
+        color: "#6AB14B"
+        Behavior on pctg {
+            NumberAnimation {
+                duration: 1000
+            }
         }
     }
 
@@ -150,7 +167,7 @@ Item {
 
             width: main.width - cardObj.width - 20 - 30
 
-            height: 320
+            height: childrenRect.height
             blurb: {
                 "short": '',
                 "long": ''
@@ -169,60 +186,6 @@ Item {
             onClicked: {
                 state = 'showExpMore'
                 $api.get_question()
-            }
-        }
-
-        Item {
-            id: cur_progress_rect
-            x: cardObj.x
-            anchors {
-                right: cardObj.right
-                bottom: cardObj.top
-                bottomMargin: 20
-            }
-
-            opacity: 0.8
-
-            PercentageCircle {
-                id: cur_progress
-                anchors {
-                    right: cur_progress_rect.right
-                    bottom: cur_progress_rect.top
-                    verticalCenter: cur_progress_rect.verticalCenter
-                    leftMargin: 10
-                }
-            }
-
-            Text {
-                id: progress_text
-                anchors {
-                    right: cur_progress.left
-                    verticalCenter: cur_progress.verticalCenter
-                }
-
-                text: 'Leaning Progress: '
-                color: "#A7C98B"
-                font {
-
-                    bold: true
-                }
-            }
-
-            visible: false
-            onVisibleChanged: {
-                aniShowWordProgress.start()
-            }
-            ParallelAnimation {
-                id: aniShowWordProgress
-                PropertyAnimation {
-                    property: "y"
-                    from: y - 5
-                }
-                PropertyAnimation {
-                    property: "opacity"
-                    from: 0.5
-                    to: 1
-                }
             }
         }
     }
@@ -301,7 +264,7 @@ Item {
                 visible: true
             }
             PropertyChanges {
-                target: cur_progress_rect
+                target: cur_progress
                 visible: false
             }
             PropertyChanges {
@@ -324,11 +287,15 @@ Item {
         State {
             name: "newCard"
             PropertyChanges {
+                target: cur_progress
+                pctg: 0
+            }
+            PropertyChanges {
                 target: busy
                 visible: false
             }
             PropertyChanges {
-                target: cur_progress_rect
+                target: cur_progress
                 visible: false
             }
             PropertyChanges {
@@ -355,7 +322,7 @@ Item {
                 visible: false
             }
             PropertyChanges {
-                target: cur_progress_rect
+                target: cur_progress
                 visible: true
             }
 

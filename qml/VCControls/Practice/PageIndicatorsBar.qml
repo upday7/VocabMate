@@ -27,6 +27,7 @@ Item {
                 pixelSize: 13
                 bold: true
             }
+            visible: false // todo: don't show for now
         }
 
         Repeater {

@@ -596,7 +596,7 @@ class VocabPractice(VocabAPI):
                 nummastered=rsp_box.pdata.nummastered,
                 a=rsp_box.pdata.a,
                 round=rounds,
-                lists=[ChallengeWordList(**l, ) for l in rsp_box.pdata.lists]
+                lists=[ChallengeWordList(**l, ) for l in rsp_box.pdata.get('lists', [])]
             ),
             auth=ChallengeAuth(loggedin=rsp_box.get('auth', Box(loggedin=False)).loggedin),
             secret=rsp_box.secret,
