@@ -24,16 +24,22 @@ Item {
                 Text {
                     id: user_points
                     text: points.toString()
-                    font.pixelSize: 18
-                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+
+                    Layout.alignment: Qt.AlignRight | Qt.AlignBottom
                     color: "#fff"
+                    font {
+                        pixelSize: 12
+                    }
                 }
 
                 Text {
                     id: user_nickname
                     text: nickname.toString()
-                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    Layout.alignment: Qt.AlignRight | Qt.AlignTop
                     color: "#fff"
+                    font {
+                        pixelSize: 12
+                    }
                 }
             }
 

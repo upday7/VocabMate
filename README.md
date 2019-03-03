@@ -25,4 +25,4 @@ python3.6 VocabMate.py
 
 #### [Screenshots](_docs/screens)
 
-![](_docs/screens/options.jpg) 
+![](docs/screens/main.jpg) 

@@ -129,7 +129,7 @@ class VocabAPI:
                 error_msg = error_tag.find(class_='msg').text
             else:
                 self.cache.set('cookies', self.s.cookies)
-        self._is_logged_in = not bool(error_msg)
+        self._is_logged_in = bool(user_name and password and not error_msg)
         return error_msg
 
     def refresh_token(self) -> Box:

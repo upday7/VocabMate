@@ -63,9 +63,15 @@ Item {
             topMargin: 5
             rightMargin: 10
         }
-        Component.onCompleted: {
-            nickname = $api.meInfo.auth.nickname
-        }
+        visible: false
+        //        Component.onCompleted: {
+
+        //            if (!visible) {
+        //                return
+        //            }
+
+        //            nickname = $api.meInfo.auth.nickname
+        //        }
     }
 
     Item {
@@ -298,14 +304,19 @@ Item {
             return
         nextCardIndicator.clicked()
     }
-
+    onStateChanged: {
+        if (state == "newCard" || state == "showExpMore") {
+            if (!$api.is_logged_in) {
+                return
+            }
+            question_user.visible = true
+            question_user.nickname = $api.meInfo.auth.nickname
+        }
+    }
     states: [
         State {
             name: "preparing"
-            PropertyChanges {
-                target: question_user
-                visible: false
-            }
+
             PropertyChanges {
                 target: busy
                 visible: true
@@ -365,6 +376,7 @@ Item {
         },
         State {
             name: "showExpMore"
+
             PropertyChanges {
                 target: busy
                 visible: false
