@@ -20,3 +20,4 @@ dist
 *.dot
 __pycache__
 tools
+test.py

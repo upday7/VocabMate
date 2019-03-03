@@ -79,6 +79,10 @@ class VCPracticeAPIObj(BridgeObj):
     def is_logged_in(self):
         return self.p.is_logged_in
 
+    @QProperty(QJsonValue)
+    def meInfo(self):
+        return QJsonValue.fromVariant(asdict(self.p.meInfo))
+
 
 class VCWordListAPIObj(BridgeObj):
     loadingWordList = Signal()

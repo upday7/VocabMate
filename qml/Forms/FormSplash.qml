@@ -11,22 +11,12 @@ Window {
     x: (Screen.width - splashImage.width) / 2
     y: (Screen.height - splashImage.height) / 2
 
-    width: splash_rect.width
-    height: splash_rect.height
-
-    Rectangle {
-        id: splash_rect
-        color: "#000000"
-        opacity: 0.8
-        radius: 8
-
-        width: splashImage.width + 20
-        height: splashImage.height + 20
-    }
+    width: splashImage.width
+    height: splashImage.height
 
     Image {
         id: splashImage
-        anchors.centerIn: splash_rect
+        //        anchors.centerIn: splash_rect
         source: "../res/img/vocab_logo.png"
         z: 99
     }

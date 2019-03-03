@@ -215,7 +215,7 @@ class VocabAPI:
                     ),
                     perms=dict(rsp_box.perms),
                     points=rsp_box.points,
-                    level=ChallengeLevel(id=rsp_box.level.id, name=rsp_box.level.name),
+                    level=ChallengeLevel(id=int(rsp_box.level.id.replace("L", "")), name=rsp_box.level.name),
                     ima=rsp_box.ima, paid=rsp_box.paid
                 )
             else:
@@ -597,7 +597,7 @@ class VocabPractice(VocabAPI):
             cmd=rsp_box.get('cmd', rsp_box.get('action', '')),
             pdata=ChallengePData(
                 points=rsp_box.pdata.points,
-                level=ChallengeLevel(rsp_box.pdata.level.id, rsp_box.pdata.level.name, ),
+                level=ChallengeLevel(int(rsp_box.pdata.level.id.replace("L", "")), rsp_box.pdata.level.name, ),
                 numplayed=rsp_box.pdata.numplayed,
                 nummastered=rsp_box.pdata.nummastered,
                 a=rsp_box.pdata.a,
@@ -653,7 +653,7 @@ class VocabPractice(VocabAPI):
             ),
             pdata=ChallengePData(
                 points=rsp_box.pdata.points,
-                level=ChallengeLevel(rsp_box.pdata.level.id, rsp_box.pdata.level.name, ),
+                level=ChallengeLevel(int(rsp_box.pdata.level.id.replace("L", "")), rsp_box.pdata.level.name, ),
                 numplayed=rsp_box.pdata.numplayed,
                 nummastered=rsp_box.pdata.nummastered,
                 a=rsp_box.pdata.a,

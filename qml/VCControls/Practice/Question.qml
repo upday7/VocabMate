@@ -3,6 +3,7 @@ import QtQuick.Window 2.3
 import QtQuick.Controls 2.4
 import Qt.labs.settings 1.0
 import QtMultimedia 5.6
+import "../Generic"
 
 Item {
 
@@ -13,6 +14,7 @@ Item {
         "ready": false,
         "def": ""
     }
+    id: main
 
     Settings {
         id: settings
@@ -25,8 +27,6 @@ Item {
             auto_play_button.text = "<font color='#78A752'>" + $favar.fa_refresh + "</font>"
         }
     }
-
-    id: main
 
     PageIndicatorsBar {
         id: round_indicator
@@ -55,6 +55,19 @@ Item {
         }
     }
 
+    UserData {
+        id: question_user
+        anchors {
+            right: main.right
+            top: main.top
+            topMargin: 5
+            rightMargin: 10
+        }
+        Component.onCompleted: {
+            nickname = $api.meInfo.auth.nickname
+        }
+    }
+
     Item {
         id: question_contents
         anchors.fill: parent
@@ -72,7 +85,6 @@ Item {
 
                 round_indicator.set_correct(correct)
                 if (!correct) {
-                    review_point.points = 0
                     return
                 }
                 word_sound.source = answer.sense.audio
@@ -99,8 +111,8 @@ Item {
                 anchors {
                     top: cardObj.bottom
                     topMargin: 10
-                    rightMargin: 5
-                    right: cardObj.right
+                    leftMargin: 5
+                    left: cardObj.left
                 }
             }
 
@@ -252,6 +264,17 @@ Item {
             state = 'newCard'
         }
 
+        onAnswerBingo: function (idx, answer) {
+            review_point.points = answer.points
+            console.log("Answer bingo!, checking loggin status",
+                        $api.is_logged_in)
+            if ($api.is_logged_in) {
+                console.log("Answer bingo! updating points!")
+                question_user.points += answer.points
+                question_user.level = answer.pdata.level.id
+            }
+        }
+
         onStarted: function (rsp) {
 
             round_indicator.round_number = round_indicator.round_number + 1
@@ -280,6 +303,10 @@ Item {
         State {
             name: "preparing"
             PropertyChanges {
+                target: question_user
+                visible: false
+            }
+            PropertyChanges {
                 target: busy
                 visible: true
             }
@@ -306,6 +333,7 @@ Item {
         },
         State {
             name: "newCard"
+
             PropertyChanges {
                 target: cur_progress
                 pctg: 0

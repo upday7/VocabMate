@@ -20,7 +20,7 @@ class ChallengeAuth:
 
 @dataclass
 class ChallengeLevel:
-    id: str
+    id: int
     name: str
 
 
