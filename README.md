@@ -23,6 +23,6 @@ python3.6 pip -m install -r requirements.txt
 python3.6 VocabMate.py
 ```
 
-#### [Screenshots](_docs/screens)
+#### [Screenshots](docs/screens)
 
 ![](docs/screens/main.jpg) 
