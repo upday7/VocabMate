@@ -516,17 +516,23 @@ class VocabPractice(VocabAPI):
         def rm_dup_spaces(s):
             return re.sub(r"\s+", " ", s).strip()
 
+        point_tag = content_bs.find(class_='pointValue')
+
         sentence_tag = content_bs.find(attrs={'class': 'sentence'})
         instructions_tag = content_bs.find(attrs={'class': 'instructions'})
 
         choices_tag = content_bs.find(attrs={'class': 'choices'})
         status_tag = content_bs.find(attrs={'class': 'status'})
         def_tag = content_bs.find(attrs={'class': 'def'})
+
         sentence = rm_dup_spaces(" ".join([str(s) for s in sentence_tag.contents])) if sentence_tag else ''
         status = rm_dup_spaces(status_tag.text) if status_tag else ''
         def_ = rm_dup_spaces(def_tag.text) if def_tag else ''
         instructions = rm_dup_spaces(" ".join([str(s) for s in instructions_tag.contents])) if instructions_tag else ''
-
+        if point_tag:
+            point = int(point_tag.text)
+        else:
+            point = -1
         if is_v2:
             qtype = rsp_box.question.qtype
         else:
@@ -601,6 +607,7 @@ class VocabPractice(VocabAPI):
             auth=ChallengeAuth(loggedin=rsp_box.get('auth', Box(loggedin=False)).loggedin),
             secret=rsp_box.secret,
             valid=rsp_box.get('valid', True),
+            review_point=point
         )
 
     def _compose_answer_rsp(self, rsp_box: Box) -> SaveAnswerRspV2:

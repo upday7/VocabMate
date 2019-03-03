@@ -33,8 +33,7 @@ Item {
         total_pages: 10
 
         anchors {
-
-            bottomMargin: 20
+            bottomMargin: 10
             horizontalCenter: main.horizontalCenter
         }
     }
@@ -51,7 +50,7 @@ Item {
         color: "#6AB14B"
         Behavior on pctg {
             NumberAnimation {
-                duration: 1000
+                duration: 400
             }
         }
     }
@@ -73,6 +72,7 @@ Item {
 
                 round_indicator.set_correct(correct)
                 if (!correct) {
+                    review_point.points = 0
                     return
                 }
                 word_sound.source = answer.sense.audio
@@ -86,6 +86,22 @@ Item {
                 console.log('onCorrectAnswerSelected in Question.qml, word leaning progress is: ',
                             $api.cur_word_leaning_progress)
                 cur_progress.pctg = $api.cur_word_leaning_progress
+            }
+
+            Text {
+                id: review_point
+                property int points
+                text: "ASSESSMENT: <b>" + points.toString() + "</b> POINTS"
+                color: "#cccccc"
+                font {
+                    pixelSize: 12
+                }
+                anchors {
+                    top: cardObj.bottom
+                    topMargin: 10
+                    rightMargin: 5
+                    right: cardObj.right
+                }
             }
 
             HintsButton {
@@ -227,6 +243,10 @@ Item {
 
             for (var i = 0; i < rsp['pdata']['round'].length; i++) {
                 round_indicator.set_correct(rsp['pdata']['round'][i].cor, i)
+            }
+
+            if (rsp.review_point !== -1) {
+                review_point.points = rsp.review_point
             }
 
             state = 'newCard'

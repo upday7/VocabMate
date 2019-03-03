@@ -173,6 +173,7 @@ class ChallengeRsp:
     auth: ChallengeAuth
     secret: str
     valid: bool
+    review_point: int = -1
 
 
 @dataclass
