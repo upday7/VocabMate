@@ -164,8 +164,8 @@ class VocabAPI:
         if word_prg_box.get('progress'):
             progress = WordProgress(
                 progress=word_prg_box.progress.progress,
-                played_at=word_prg_box.progress.played_at,
-                scheduled_at=word_prg_box.progress.scheduled_at,
+                played_at=word_prg_box.progress.get('played_at', ''),
+                scheduled_at=word_prg_box.progress.get('scheduled_at', ''),
                 play_count=word_prg_box.progress.play_count,
                 correct_count=word_prg_box.progress.correct_count,
                 incorrect_count=word_prg_box.progress.incorrect_count,
@@ -626,8 +626,8 @@ class VocabPractice(VocabAPI):
             user_choice=rsp_box.answer.get("user_choice", -1),
             progress=WordProgress(
                 progress=rsp_box.answer.progress.progress,
-                played_at=rsp_box.answer.progress.played_at,
-                scheduled_at=rsp_box.answer.progress.scheduled_at,
+                played_at=rsp_box.answer.progress.get('played_at', ''),
+                scheduled_at=rsp_box.answer.progress.get('scheduled_at', ''),
                 play_count=rsp_box.answer.progress.play_count,
                 correct_count=rsp_box.answer.progress.correct_count,
                 incorrect_count=rsp_box.answer.progress.incorrect_count,
@@ -642,7 +642,7 @@ class VocabPractice(VocabAPI):
             round_turn=rsp_box.answer.round_turn,
             response_time=rsp_box.answer.response_time,
             session_time=rsp_box.answer.session_time,
-            played_at=rsp_box.answer.played_at,
+            played_at=rsp_box.answer.get('played_at', ''),
             correct=rsp_box.answer.correct,
             hints=rsp_box.answer.hints,  # bool
             blurb=AnswerBlurb(rsp_box.answer.blurb.short, rsp_box.answer.blurb.long),  # html format
