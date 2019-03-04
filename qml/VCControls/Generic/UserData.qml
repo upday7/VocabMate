@@ -6,7 +6,7 @@ Item {
     height: childrenRect.height
 
     property string nickname: " --- "
-    property int points: 4432
+    property int points: 0
     property int level: 2 // starting at 1
 
     FontLoader {

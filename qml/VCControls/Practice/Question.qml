@@ -311,6 +311,7 @@ Item {
             }
             question_user.visible = true
             question_user.nickname = $api.meInfo.auth.nickname
+            question_user.points = $api.meInfo.points
         }
     }
     states: [
