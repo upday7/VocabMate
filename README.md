@@ -7,7 +7,7 @@ QML interface for  [Vocabulary.com](https://www.vocabulary.com/play/) games.
 #### Binaries
 Window / MacOSX are both supported. (Not for Linux now)
 
-[Download Here](https://github.com/upday7/VocabMate/releases)
+[Download Here](https://github.com/upday7/VocabMate/releases/latest)
 
 #### Run from Source
 
